@@ -4,7 +4,8 @@ import './App.css';
 //import 'bootstrap/dist/css/bootstrap.min.css';
 import 'semantic-ui-css/semantic.min.css';
 //<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css" />
-import { Header, Icon, Image, Menu, Segment, Sidebar} from 'semantic-ui-react';
+import {Menu, Segment, Sidebar} from 'semantic-ui-react';
+import ModelController from "./ModelController";
 
 import Menubar from "./Menubar";
 import Sidemenu from "./Sidemenu";
@@ -15,7 +16,10 @@ export default class App extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {sidebar_visible: false};
+        this.state = {
+            sidebar_visible: false,
+            controller: new ModelController()
+        };
     }
 
     onMenuIconClicked(e) {
@@ -28,17 +32,16 @@ export default class App extends React.Component {
             <div className="App">
                 <Sidebar.Pushable as={Segment}>
                     <Sidebar as={Menu}
-                             inverted
                              animation='overlay'
                              visible={this.state.sidebar_visible}
                              vertical
                              onHide={()=>{this.setState({sidebar_visible: false})}}
                              >
-                        <Sidemenu></Sidemenu>
+                        <Sidemenu controller={this.state.controller}></Sidemenu>
                     </Sidebar>
                     <Sidebar.Pusher>
                         <Menubar onMenuIconClicked={this.onMenuIconClicked.bind(this)}></Menubar>
-                        <MainContent />
+                        <MainContent controller={this.state.controller}/>
                     </Sidebar.Pusher>
                 </Sidebar.Pushable>
             </div>

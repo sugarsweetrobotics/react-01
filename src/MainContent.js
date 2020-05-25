@@ -1,12 +1,15 @@
 import React from 'react';
-import {Segment, Menu, Icon} from 'semantic-ui-react';
+import SystemEditor from "./SystemEditor";
 
-export default function MainContent() {
-    return (<div id={"main_content"} style={ {height: "100vh"} }>
-        <Segment id="main_content" basic>
-            Main Content
-        </Segment>
-        </div>
-    );
+export default class MainContent extends React.Component {
+
+
+    render() {
+        return (<div id={"main_content"} style={{height: "100vh"}}>
+                <SystemEditor controller={this.props.controller}/>
+            </div>
+        );
+
+    }
 }
 
