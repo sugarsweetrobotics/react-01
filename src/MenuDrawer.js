@@ -1,8 +1,8 @@
 import {drawEllipse, drawArc, drawRect, drawEllipseShadow, drawLine, drawPi, drawRectShadow, drawText} from "./Drawing";
 
-import {drawVM, drawEC, drawECStates} from "./ObjectDrawer";
-import {drawContainerConnection, drawECBindConnection, drawOperationConnection} from "./RelationDraw";
-import {includes, distanceToLine, offset, rotate, translate} from "./Dimension";
+//import {drawVM, drawEC, drawECStates} from "./ObjectDrawer";
+//import {drawContainerConnection, drawECBindConnection, drawOperationConnection} from "./RelationDraw";
+import {offset} from "./Dimension";
 import {menuParameter} from "./MenuParameter";
 
 
@@ -29,7 +29,7 @@ export function drawSelectedVMBackground(ctx, vm) {
 export function drawSelectedRelationMenuBackground(ctx, connection) {
     if (connection == null) return;
     let color = '#fff';
-    console.log(connection.connection);
+    //console.log(connection.connection);
     if (connection.connection) {
     }
     drawLine(ctx, {x: connection.line.x0, y: connection.line.y0}, {x: connection.line.x1, y: connection.line.y1}, color, {lineWidth: 5, blur: 20});
@@ -102,6 +102,7 @@ export function drawSelectedRelationMenu(drawer, ctx, connection) {
 
 
 export function drawSelectedVMMenu(drawer, ctx, vm) {
+    //console.log('drawSelectedVMMenu', drawer.menuProgressed, drawer.menuAnimationProgressed);
     if (vm == null) {
         drawer.menuProgressed = -1;
         return;
@@ -109,24 +110,27 @@ export function drawSelectedVMMenu(drawer, ctx, vm) {
     drawSelectedVMMenuWorker(drawer, ctx, vm, drawer.menuProgressed, drawer.menuAnimationProgressed);
     if (drawer.menuProgressed < 0) {
         drawer.menuProgressed = 1;
-
+        let startTime = Date.now();
         let timer = setInterval( () => {
-            drawer.menuProgressed += 3;
+            let durationMS = Date.now() - startTime;
+            drawer.menuProgressed = 100 * durationMS / 300;
             drawer.drawCanvas(ctx);
             if (drawer.menuProgressed >= 100) {
                 drawer.menuProgressed = 100;
                 clearInterval(timer);
             }
-        }, 15);
+        }, 50);
     } else if (drawer.menuAnimationProgressed < 0) {
+        let startTime = Date.now();
         let timer = setInterval( () => {
-            drawer.menuAnimationProgressed += 3;
+            let durationMS = Date.now() - startTime;
+            drawer.menuAnimationProgressed = 100 * durationMS / 300;
             drawer.drawCanvas(ctx);
             if (drawer.menuAnimationProgressed >= 100) {
                 drawer.menuAnimationProgressed = 100;
                 clearInterval(timer);
             }
-        }, 15);
+        }, 50);
     }
 
 
@@ -141,14 +145,13 @@ function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgre
     } else if (vm.type === 'container') {
         color = '#00fcf4';
     } else if (vm.type === 'operation') {
-
         color = '#ff0000';
-
     } else if (vm.type === 'container_operation') {
         color = '#00ff29';
     }
 
     {
+        /// 内側のプログレスメーター部分の描画
         drawEllipse(ctx, vm.position, {width: radius * 2, height: radius * 2}, color, {
             fill: false,
             lineWidth: 2.0
@@ -158,10 +161,7 @@ function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgre
             lineWidth: 2.0
         });
 
-
-
         let circle_progress = progress;
-
         drawEllipse(ctx, vm.position, {width: radius * 2 + 70, height: radius * 2 + 70}, color, {
             fill: false,
             lineWidth: 1.0,
@@ -174,19 +174,12 @@ function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgre
                 innerRadius: radius + 36,
                 stroke: false
             });
-
-
             drawPi(ctx, vm.position, radius + 40, Math.PI + Math.PI / 2 - 0.9, Math.PI + Math.PI / 2 + 0.3, color, {
                 innerRadius: radius + 36,
                 stroke: false
             });
-
-
         }
-    }
 
-    {
-        let circle_progress = progress;
         let rr = radius + 2;
         let rd = radius + 12;
         for (let i = 0; i < circle_progress; i++) {
@@ -197,6 +190,202 @@ function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgre
                 x: rd * c + vm.position.x,
                 y: rd * s + vm.position.y
             }, color);
+        }
+    }
+
+    if (vm.type === 'operation' || vm.type === 'container_operation'){
+        /// 操作メニュー
+
+        if (!menuParameter.operationControlButtonState) {
+            drawArc(ctx,{
+                x:0 + vm.position.x, y: 180 + vm.position.y
+            }, 30 * progress / 100 + 1, 0, Math.PI * 2 / 100 * progress, color);
+            drawArc(ctx, {
+                x:0 + vm.position.x, y: 180 + vm.position.y
+            }, 20 * progress / 100 + 1, 0, -Math.PI * 2 / 100 * progress , color, {
+                ccw: true,
+            });
+
+            if (progress >= 100) {
+                drawText(ctx, 'Control Menu', {
+                    x: vm.position.x + 90, y: 180 + vm.position.y
+                }, color);
+
+                menuParameter.operationControlButtonState = {
+                    button: {
+                        position: {
+                            x: vm.position.x, y: vm.position.y + 180
+                        },
+                        radius: 30
+                    },
+                    pushedButton: null,
+                }
+            }
+        } else if (!menuParameter.operationControlButtonState.pushedButton) {
+            drawArc(ctx,{
+                x:0 + vm.position.x, y: 180 + vm.position.y
+            }, 30 * progress / 100 + 1, 0, Math.PI * 2 / 100 * progress, color);
+            drawArc(ctx, {
+                x:0 + vm.position.x, y: 180 + vm.position.y
+            }, 20 * progress / 100 + 1, 0, -Math.PI * 2 / 100 * progress , color, {
+                ccw: true,
+            });
+            drawText(ctx, 'Control Menu', {
+                x: vm.position.x + 90, y: 180 + vm.position.y
+            }, color);
+
+            menuParameter.operationControlButtonState = {
+                button: {
+                    position: {
+                        x: vm.position.x, y: vm.position.y + 180
+                    },
+                    radius: 30
+                },
+                pushedButton: null,
+            }
+
+        } else {
+            const lineProgress = menuAnimationProgress < 30 ? menuAnimationProgress * 3 + 10 : 100;
+            const maxLineLength = 200;
+            let lineLength = maxLineLength * lineProgress / 100;
+            let anchor = {
+                x: -lineLength / 2, y: 150
+            };
+            drawLine(ctx, anchor, {
+                x: anchor.x + lineLength, y: anchor.y
+            }, color, {
+                offset: vm.position
+            });
+
+            if (lineProgress > 80) {
+                drawRect(ctx, {
+                    x: anchor.x + 25 + vm.position.x, y: anchor.y - 2 + vm.position.y
+                }, {
+                    width: 50, height: 4
+                }, color, {
+                    stroke: false,
+                    fillColor: 'white',
+                    fill: true,
+                    lineWidth: 1.0,
+                })
+            }
+
+            let menuProgress = menuAnimationProgress < 30 ? 0 :(menuAnimationProgress - 30) * 3 + 10;
+            if (menuProgress > 100) menuProgress = 100;
+            anchor.y += 20;
+            if (menuProgress > 0) {
+                drawRect(ctx, {
+                    x: vm.position.x - 45, y: anchor.y + 25 + vm.position.y
+                }, {
+                    width: 80, height: 50 * menuProgress / 100
+                }, color);
+
+                drawRect(ctx, {
+                    x: vm.position.x - 45 + 90, y: anchor.y + 25 + vm.position.y
+                }, {
+                    width: 80, height: 50 * menuProgress / 100
+                }, color);
+
+                if (menuProgress > 90) {
+                    menuParameter.operationControlButtonState.invokeButton = {
+                        position: {
+                            x: vm.position.x - 45, y: anchor.y + 25 + vm.position.y
+                        },
+                        size: {
+                            width: 80, height: 50 * menuProgress / 100
+                        },
+                        viewModel: vm
+                    };
+                    menuParameter.operationControlButtonState.executeButton = {
+                        position: {
+                            x: vm.position.x - 45 + 90, y: anchor.y + 25 + vm.position.y
+                        },
+                        size: {
+                            width: 80, height: 50 * menuProgress / 100
+                        },
+                        viewModel: vm
+                    };
+
+                    drawText(ctx, 'Invoke', {
+                        x: vm.position.x - 45, y: anchor.y + 25 + vm.position.y
+                    }, color);
+                    drawText(ctx, 'Execute', {
+                        x: vm.position.x - 45 + 90, y: anchor.y + 25 + vm.position.y
+                    }, color);
+                }
+            }
+
+
+            let baseProgress = menuAnimationProgress < 30 ? 0 :(menuAnimationProgress - 30) * 3 + 10;
+            if (baseProgress > 100) baseProgress = 100;
+
+            let arrow_progress = progress > 33 ? 100 : progress * 3;
+            if (arrow_progress > 100) arrow_progress = 100;
+            let theta = Math.PI / 4;
+
+            let maxBaseLength = 200;
+            let c = Math.cos(theta);
+            let s = Math.sin(theta);
+            let rr = radius - 20;
+            let rd = rr + (100) / 100.0 * arrow_progress;
+            let base_length = maxBaseLength / 100.0 * baseProgress;
+            drawLine(ctx, {x: vm.position.x + rr * c, y: vm.position.y + rr * s}, {x: rd * c + vm.position.x, y: rd*s + vm.position.y},
+                color);
+            if (baseProgress > 0) {
+                drawLine(ctx, {
+                        x: rd * c + vm.position.x,
+                        y: rd * s + vm.position.y
+                    }, {x: rd * c + vm.position.x + base_length, y: rd * s + vm.position.y},
+                    color);
+
+                if (baseProgress > 80) {
+                    drawText(ctx, 'Log View', {
+                        x: vm.position.x + rd * c + 150,
+                        y: vm.position.y + rd * s - 10
+                    }, color);
+
+                    drawRect(ctx, {
+                            x: vm.position.x + rd * c + 175,
+                            y: vm.position.y + rd * s + 3
+                        }, {width: 50, height: 5}, color, {
+                        stroke: false,
+                        fillColor: 'white',
+                        fill: true,
+                        lineWidth: 1.0,
+                    });
+
+                    if (menuParameter.operationControlButtonState.outputLog) {
+                        let outputLog = menuParameter.operationControlButtonState.outputLog;
+                        let replacer = (key, value) => {
+                            if (value instanceof Array) {
+                                return "Array[" + value.toString() + "]";
+                            }
+                            return value;
+                        }
+                        let text = JSON.stringify(outputLog, replacer, 2);
+                        let ts = text.split('\n');
+                        ts.forEach((t, i) => {
+                            drawText(ctx, t, {
+                                x: vm.position.x + rd * c + 20,
+                                y: vm.position.y + rd * s + 30 + 30 * i
+                            }, color, {
+                                align: 'left'
+                            });
+
+                        })
+
+                    } else {
+                        drawText(ctx, 'Select Control Menu Button', {
+                            x: vm.position.x + rd * c + 20,
+                            y: vm.position.y + rd * s + 30
+                        }, color, {
+                            align: 'left'
+                        });
+                    }
+                }
+            }
+
+
         }
     }
 
@@ -285,6 +474,8 @@ function drawECSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimati
         size: size,
     };
 
+
+
 }
 
 function drawOperationSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress) {
@@ -298,7 +489,7 @@ function drawOperationSpecialMenu(drawer, ctx, vm, radius, color, progress, menu
     //this.drawEllipse(ctx, output_icon_center,
     //    {width: icon_radius*2, height: icon_radius*2}, color, {fill: false, lineWidth: 2.0, startAngle: 0, endAngle: Math.PI * 2 / 100 * icon_progress});
 
-    let stopAngle = Math.PI / 4;
+    let stopAngle = Math.PI * 1 / 10;
     let startAngle = ((-Math.PI * 3 / 5) - Math.PI / 4) * arc_progress / 100.0 + stopAngle;
     drawArc(ctx, vm.position, radius + 110, stopAngle, startAngle, color, {
         ccw: true,
@@ -544,6 +735,10 @@ function drawOperationSpecialMenu(drawer, ctx, vm, radius, color, progress, menu
         }
 
         // ここは入力ボタンの分！個数に応じて表示場所を調整している分！
+        if (!vm.model.model.defaultArg) {
+            console.error('defaultArg is undefined:', vm);
+            return;
+        }
         let numOfArgs = Object.keys(vm.model.model.defaultArg).length;
         let startAngle = Math.PI - Math.PI / 16 * numOfArgs;
         for(let arg in vm.model.model.defaultArg) {

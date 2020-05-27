@@ -1,7 +1,7 @@
 import React from 'react';
-import {valueIsError} from "./nerikiri";
+//import {valueIsError} from "./nerikiri";
 import {Icon,  Accordion} from 'semantic-ui-react';
-import OperationSidePanel from "./OperationSidePanel";
+//import OperationSidePanel from "./OperationSidePanel";
 
 export default class BrokerSidePanel extends React.Component {
 

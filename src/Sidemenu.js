@@ -1,8 +1,8 @@
 import React from 'react';
 import {Menu, Button, Icon} from 'semantic-ui-react';
-import process from './nerikiri';
+// import process from './nerikiri';
 import ProcessSidePanel from './ProcessSidePanel';
-import ModelController from "./ModelController";
+// import ModelController from "./ModelController";
 
 export default class Sidemenu extends React.Component {
     constructor(props) {
@@ -16,8 +16,7 @@ export default class Sidemenu extends React.Component {
     }
 
     updateModel() {
-        this.state.controller.setOnUpdateModel((controller) => {
-            console.log('update!');
+        this.state.controller.setOnUpdateModel(() => {
             this.setState({controller: this.state.controller});
         })
     }
@@ -40,7 +39,6 @@ export default class Sidemenu extends React.Component {
     }
 
     render() {
-        console.log('SideMenu.render()');
         return (
             <div className="sidemenu">
                 <Menu secondary>

@@ -1,6 +1,6 @@
 
 export function urlToAddr(url) {
-    let buf = url;
+   // let buf = url;
     if (url.startsWith('http://')) {
         url = url.slice(7);
     }
@@ -12,7 +12,7 @@ export function urlToAddr(url) {
 }
 
 export function urlToPort(url) {
-    let buf = url;
+   // let buf = url;
     if (url.startsWith('http://')) {
         url = url.slice(7);
     }
@@ -210,6 +210,35 @@ export async function changeECState(procUrl, ec, state) {
             method: 'POST',
             mode: 'cors',
             body: '"' + state + '"',
+        });
+        return f.json();
+    }
+}
+
+export async function invokeOperation(procUrl, op) {
+    if (procUrl) {
+        let instanceName = op.instanceName;
+        if (op.ownerContainerInstanceName) {
+            instanceName = op.ownerContainerInstanceName + ':' + instanceName;
+        }
+        let f = await fetch( procUrl + '/process/operations/' + instanceName + '/', {
+            method: 'GET',
+            mode: 'cors',
+        });
+        return f.json();
+    }
+}
+
+export async function executeOperation(procUrl, op) {
+    if (procUrl) {
+        let instanceName = op.instanceName;
+        if (op.ownerContainerInstanceName) {
+            instanceName = op.ownerContainerInstanceName + ':' + instanceName;
+        }
+        let f = await fetch( procUrl + '/process/operations/' + instanceName + '/execution/', {
+            method: 'PUT',
+            mode: 'cors',
+            body: '{}'
         });
         return f.json();
     }

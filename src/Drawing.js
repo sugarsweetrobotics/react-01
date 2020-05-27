@@ -43,7 +43,8 @@ export function drawArc(ctx, center, radius, startAngle, stopAngle, color, optio
     if (option === undefined) {
         option = {
             lineWidth: 3.0,
-            ccw: false
+            ccw: false,
+            blur: 10
         }
     }
     ctx.lineWidth = option.lineWidth;
@@ -57,7 +58,7 @@ export function drawArc(ctx, center, radius, startAngle, stopAngle, color, optio
     ctx.shadowColor = color;
     ctx.shadowOffsetX = 4000;
     ctx.shadowOffsetY = 0;
-    ctx.shadowBlur = 10;
+    ctx.shadowBlur = option.blur !== undefined ? option.blur : 10.0;
     ctx.beginPath();
     ctx.strokeStyle = 'black';
     ctx.arc(center.x - 4000, center.y, radius, startAngle, stopAngle, option.ccw !== undefined ? option.ccw : false);
@@ -75,14 +76,16 @@ export function drawLine(ctx, x0, x1, color, option) {
     if (option === undefined) {
         option = {
             lineWidth: 3.0,
-            blur: 10
+            blur: 10,
+            offset: {x: 0, y: 0}
         }
     }
-    ctx.lineWidth = option.lineWidth !== undefined ? option.lineWidth : 10;
+    let offset = option.offset ? option.offset : {x: 0, y: 0};
+    ctx.lineWidth = option.lineWidth !== undefined ? option.lineWidth : 3.0;
     ctx.strokeStyle = 'white';
     ctx.beginPath();
-    ctx.moveTo(x0.x, x0.y);
-    ctx.lineTo(x1.x, x1.y);
+    ctx.moveTo(x0.x + offset.x, x0.y + offset.y);
+    ctx.lineTo(x1.x + offset.x, x1.y + offset.y);
     ctx.stroke();
     ctx.closePath();
 
@@ -93,8 +96,8 @@ export function drawLine(ctx, x0, x1, color, option) {
     ctx.shadowBlur = option.blur !== undefined ? option.blur : 10;
     ctx.beginPath();
     ctx.strokeStyle = 'black';
-    ctx.moveTo(x0.x-4000, x0.y);
-    ctx.lineTo(x1.x-4000, x1.y);
+    ctx.moveTo(x0.x-4000 + offset.x, x0.y + offset.y);
+    ctx.lineTo(x1.x-4000 + offset.x, x1.y + offset.y);
 
     ctx.stroke();
     ctx.closePath();
@@ -222,17 +225,27 @@ export function drawEllipse(ctx, position, size, color, option) {
     ctx.lineWidth = 1.0;
 }
 
-export function drawText(ctx, text, position, color) {
+export function drawText(ctx, text, position, color, option) {
+
+    let align = option ? ( option.align ? option.align : 'center') : 'center';
+    let scale = ctx.nkScale;
     ctx.lineWidth = 5.0;
     ctx.fillStyle = "white";
-    ctx.font = "italic bold 14px monospace";
+    ctx.font = "italic bold " + (14 * scale).toString() + "px monospace";
     let textWidth = ctx.measureText(text).width;
-    ctx.fillText(text, position.x - textWidth / 2, position.y);
+    let pos = position;
+    if (align === 'center') {
+        pos = {
+            x: pos.x - textWidth / 2,
+            y: pos.y
+        }
+    }
+    ctx.fillText(text, pos.x, pos.y);
     ctx.shadowColor = color;
     ctx.shadowOffsetX = 4000;
     ctx.shadowOffsetY = 0;
     ctx.shadowBlur = 15;
-    ctx.fillText(text, position.x - textWidth / 2 - 4000, position.y);
+    ctx.fillText(text, pos.x - 4000, pos.y);
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
     ctx.shadowBlur =0;

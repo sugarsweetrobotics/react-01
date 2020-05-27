@@ -7,4 +7,5 @@ export let menuParameter = {
     ecButtonState: null,
     pushedConnectorButton: null,
     deleteButton: null,
+    operationControlButtonState: null,
 }

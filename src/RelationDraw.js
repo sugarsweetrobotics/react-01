@@ -1,5 +1,5 @@
 import {drawEllipse, drawLine, drawPolygon, drawText} from "./Drawing";
-import {includes, distanceToLine, offset, rotate, translate, crossingPointLineAndEllipse} from "./Dimension";
+import {rotate, translate, crossingPointLineAndEllipse} from "./Dimension";
 
 
 export function drawOperationConnection(drawer, ctx, vm) {

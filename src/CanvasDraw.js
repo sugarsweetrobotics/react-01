@@ -1,8 +1,7 @@
 
-import {drawEllipse, drawLine, drawPi, drawPolygon, drawEllipseShadow, drawRect, drawText, drawRectShadow} from "./Drawing";
-import {drawVM, drawEC, drawECStates} from "./ObjectDrawer";
+import {drawVM, drawEC} from "./ObjectDrawer";
 import {drawContainerConnection, drawECBindConnection, drawOperationConnection} from "./RelationDraw";
-import {includes, distanceToLine, distance, offset, rotate, translate} from "./Dimension";
+import {includes, distanceToLine, distance} from "./Dimension";
 import {menuParameter} from "./MenuParameter";
 import {
     drawSelectedVMMenu,
@@ -11,6 +10,8 @@ import {
     drawSelectedRelationMenuBackground
 } from "./MenuDrawer";
 import process, {connect, urlToAddr, urlToPort} from "./nerikiri";
+
+import {drawLine, drawArc} from "./Drawing";
 
 export let ViewModel = (m, pos) => {
     if (m.type === 'container') {
@@ -43,7 +44,7 @@ export let ViewModel = (m, pos) => {
         }
     }
 }
-
+/*
 let menuOfSelectedVM = (vm) => {
 
     if (vm.type === 'container') {
@@ -78,7 +79,7 @@ let menuOfSelectedVM = (vm) => {
         inputIcons: icons
     }
 }
-
+*/
 
 export class CanvasDraw {
 
@@ -97,6 +98,7 @@ export class CanvasDraw {
         this.operationConnections = [];
         this.menuState = null;
         this.selectedObjectIsRemoving = false;
+        this.scrolling = false;
 
         this.controller.setOnUpdateModel((ctrlor) => {
             this.validate();
@@ -115,7 +117,7 @@ export class CanvasDraw {
                 continue;
             }
 
-            console.log('found');
+            /// console.log('found');
             //this.models.splice(i, 1);
             this.viewModels.splice(i, 1);
             break;
@@ -123,9 +125,11 @@ export class CanvasDraw {
         }
 
         if (model.type === 'container') {
-            model.operations.forEach((op) => {
-                this.removeModel(op);
-            });
+            if (model.operations) {
+                model.operations.forEach((op) => {
+                    this.removeModel(op);
+                });
+            }
         }
     }
 
@@ -159,7 +163,7 @@ export class CanvasDraw {
         this.viewModels.push(ViewModel(model, point));
 
         if (model.type === 'container') {
-            console.log(model);
+            // console.log(model);
             model.model.operations.forEach((operation, i)=> {
 
                 let data = {
@@ -204,7 +208,7 @@ export class CanvasDraw {
     onMouseMove(e, cb) {
         // オブジェクト上でマウスダウンがあった場合
         // ドラッグ状態の処理
-        if (this.selectedViewModel != null && this.pickedPoint != null) {
+        if (this.selectedViewModel != null && this.pickedPoint != null && !this.scrolling) {
             let cp = this.clientPosition(e);
             this.selectedViewModel.position.x += cp.x - this.pickedPoint.x;
             this.selectedViewModel.position.y += cp.y - this.pickedPoint.y;
@@ -223,7 +227,7 @@ export class CanvasDraw {
         }
 
         /// キャンバス場でマウスダウンがあった場合
-        if (this.selectedViewModel === null && this.pickedPoint != null) {
+        if ((this.selectedViewModel === null && this.pickedPoint != null)|| this.scrolling) {
             let cp = this.clientPosition(e);
             this.canvasOffset.x += cp.x - this.pickedPoint.x;
             this.canvasOffset.y += cp.y - this.pickedPoint.y;
@@ -252,6 +256,28 @@ export class CanvasDraw {
             return false;
         }
 
+        if (menuParameter.operationControlButtonState) {
+            if (distance(point, menuParameter.operationControlButtonState.button.position) < menuParameter.operationControlButtonState.button.radius) {
+                if (!menuParameter.operationControlButtonState.pushedButton) {
+                    menuParameter.operationControlButtonState.pushedButton = {};
+                    this.menuAnimationProgressed = -1;
+                    return true;
+                }
+            } else if (menuParameter.operationControlButtonState.pushedButton){
+                if (includes(menuParameter.operationControlButtonState.invokeButton, point)) {
+                    //console.log('Invoke');
+                    this.onInvokeOperation(menuParameter.operationControlButtonState.invokeButton.viewModel.model);
+                    return true;
+                } else if (includes(menuParameter.operationControlButtonState.executeButton, point)) {
+                    //console.log('Execute');
+                    this.onExecuteOperation(menuParameter.operationControlButtonState.invokeButton.viewModel.model);
+                    return true;
+                }
+            }
+            menuParameter.operationControlButtonState = null;
+        }
+
+        // 出力ボタンにクリックがあったとき
         if(distance(point, menuParameter.outputButtonCenter) < 30.0) {
             this.menuState = 'output_button_clicked';
             this.menuAnimationProgressed = -1;
@@ -271,7 +297,7 @@ export class CanvasDraw {
             if (menuParameter.outputButtonState.deleteButton !== null && menuParameter.outputButtonState.deleteButton !== undefined) {
                 if (includes(menuParameter.outputButtonState.deleteButton, point)) {
                     /// DELETEボタンが押された
-                    let connection = menuParameter.outputButtonState.deleteButton.connection;
+                    // let connection = menuParameter.outputButtonState.deleteButton.connection;
                     this.onDeleteButtonClicked(menuParameter.outputButtonState.deleteButton);
                     menuParameter.outputButtonState.pushedConnectorButton = null;
 
@@ -296,10 +322,10 @@ export class CanvasDraw {
                         if (includes(bbtn, point)) {
                             let btn = menuParameter.outputButtonState.pushedConnectorButton.pushedArgumentButton.button;
 
-                            let inputP = process(btn.input.model.processUrl);
-                            let inputB_promise = inputP.brokerInfos();
+                            // let inputP = process(btn.input.model.processUrl);
+                            // let inputB_promise = inputP.brokerInfos();
                             let outputP = process(btn.output.model.processUrl);
-                            let outputB_promise = outputP.brokerInfos();
+                            // let outputB_promise = outputP.brokerInfos();
                             let connectionBroker = bbtn.broker;
                             let connectionName = 'connection';
                             let inputInstanceName = btn.input.model.model.instanceName;
@@ -339,7 +365,7 @@ export class CanvasDraw {
                                 type: 'event'
                             }
 
-                            console.log('connectionInfo:', connectionInfo);
+                            // console.log('connectionInfo:', connectionInfo);
                             connect(outputP, connectionInfo).then((info) => {
                                 this.controller.update();
                             }).catch((err) => {
@@ -356,7 +382,7 @@ export class CanvasDraw {
                     if (includes(btn, point)) {
                         //menuParameter.outputButtonState.pushedConnectorButton.pushedArgumentButton.brokerButtons = [];
 
-                        console.log('Connect:', btn);
+                        // console.log('Connect:', btn);
                         let inputP = process(btn.input.model.processUrl);
                         let inputB_promise = inputP.brokerInfos()
                         let outputP = process(btn.output.model.processUrl);
@@ -373,7 +399,7 @@ export class CanvasDraw {
                         }
 
                         p.then((ps) => {
-                            console.log('Searching Common Brokers:', ps);
+                            // console.log('Searching Common Brokers:', ps);
                             for(let b1 of ps[0]) {
                                 for(let b2 of ps[1]) {
                                     if (b1.name === b2.name) {
@@ -400,7 +426,11 @@ export class CanvasDraw {
 
     onMouseDown(e) {
         let cp = this.clientPosition(e);
-
+        if (e.shiftKey) {
+            this.scrolling = true;
+            this.pickedPoint = cp;
+            return this;
+        }
         // メニューが表示されてたらボタンチェックするよ
         if (this.menuProgressed >= 100) {
             if (this.checkMenuButtonClicked(cp)) {
@@ -411,11 +441,17 @@ export class CanvasDraw {
             }
         }
 
-        let vm  =this.getIncludingViewModel(cp);
+        let vm = this.getIncludingViewModel(cp);
+        //if (this.selectedViewModel && this.selectedViewModel.is(vm)) {
         if (this.selectedViewModel != vm) {
-            this.menuProgressed = -1;
-            this.selectedConnection = null;
+            if (vm !== null) {
+                this.menuProgressed = -1;
+                this.selectedConnection = null;
+                this.selectedViewModel = vm;
+            }
         }
+
+        this.scrolling = false;
         this.selectedViewModel = vm;
 
         if (this.selectedViewModel === null) {
@@ -433,6 +469,7 @@ export class CanvasDraw {
         }
         this.pickedPoint = this.clientPosition(e);
         this.selectedObjectIsRemoving = false;
+        this.scrolling = false;
 
         return this;
     }
@@ -440,12 +477,15 @@ export class CanvasDraw {
     onMouseLeave(e) {
         this.pickedPoint = null;
         this.selectedObjectIsRemoving = false;
-
+        this.scrolling = false;
         return this;
     }
 
     checkConnectionIsSelected(connections, clickedPoint) {
         for(let connection of connections) {
+            let center = {x: (connection.line.x0 + connection.line.x1)/2, y: (connection.line.y0 + connection.line.y1)/2};
+            let lineLength = Math.sqrt((connection.line.x0-connection.line.x1)**2 + (connection.line.y0-connection.line.y1)**2);
+            if (distance(center, clickedPoint) > lineLength / 2) continue;
             let d = distanceToLine(clickedPoint, connection.line);
             if (Math.abs(d) < 20) {
                 return connection;
@@ -454,13 +494,123 @@ export class CanvasDraw {
         return null;
     }
 
-
     isSelectedVM(vm) {
         if (this.selectedViewModel === null) {
             return false;
         }
         return (vm.model == this.selectedViewModel.model) ;
     }
+
+    onDeleteButtonClicked(deleteButton) {
+        console.log('Delete Button clicked:', deleteButton);
+        let connection = deleteButton.connection;
+        console.log(deleteButton);
+        let processUrl = deleteButton.vm.model.processUrl;
+        this.controller.deleteConnection(processUrl, connection);
+    }
+
+    onChangeECState(vm, state) {
+        console.log('onChangeECState:', vm, state);
+        let processUrl = vm.model.processUrl;
+        return this.controller.changeECState(processUrl, vm.model.model, state).then((info) => {
+            this.validate();
+            //this.controller.update();
+        });
+    }
+
+    onInvokeOperation(vm) {
+        console.log('onInvokeOperation:', vm);
+        let processUrl = vm.processUrl;
+        return this.controller.invokeOperation(processUrl, vm.model).then((info) => {
+            menuParameter.operationControlButtonState.outputLog = info;
+            this.validate();
+            //this.controller.update();
+        });
+    }
+
+    onExecuteOperation(vm) {
+        console.log('onExecuteOperation:', vm);
+        let processUrl = vm.processUrl;
+        return this.controller.executeOperation(processUrl, vm.model).then((info) => {
+            menuParameter.operationControlButtonState.outputLog = info;
+            this.validate();
+            //this.controller.update();
+        });
+    }
+
+    validate() {
+        //console.log('validate()');
+        // ViewModelとController内のモデルとの照合
+
+        // 描画中のViewModeについて
+        this.viewModels.forEach((vm) => {
+            // let url = vm.model.processUrl;
+            this.controller.getProcesses().forEach((p) => {
+                if (p.url() === vm.model.processUrl) {
+                    let m = vm.model.model;
+                    if (vm.model.type === 'operation' && p) {
+                        p.props.operations.forEach((op) => {
+                            if (op.instanceName === m.instanceName) {
+                                vm.model.model = op;
+                            }
+                        });
+                    } else if (vm.model.type === 'container') {
+
+                    } else if (vm.model.type === 'container_operation') {
+                        p.props.containers.forEach((con) => {
+                            con.operations.forEach((op) => {
+                                if (op.instanceName === m.instanceName && op.ownerContainerInstanceName === m.ownerContainerInstanceName) {
+                                    vm.model.model = op;
+                                }
+                            })
+                        })
+                    } else if (vm.model.type === 'ec') {
+                        p.props.ecs.forEach((ec) => {
+                            if (ec.instanceName === m.instanceName) {
+                                vm.model.model = ec;
+                            }
+                        });
+                    }
+                }
+            })
+        })
+    }
+
+
+    drawCanvas(ctx) {
+        ctx.nkScale = 1.0;
+        ctx.translate(this.canvasOffset.x, this.canvasOffset.y);
+        this.drawBackground(ctx);
+        drawSelectedVMBackground(ctx, this.selectedViewModel);
+        drawSelectedRelationMenuBackground(ctx, this.selectedConnection);
+
+        this.operationConnections = [];
+        this.viewModels.forEach((vm) => {
+            drawContainerConnection(this, ctx, vm);
+            drawOperationConnection(this, ctx, vm);
+        });
+
+        this.viewModels.forEach((vm) => {
+            drawEC(this, ctx, vm);
+        });
+
+        this.viewModels.forEach((vm) => {
+            drawECBindConnection(this, ctx, vm);
+        });
+
+        this.viewModels.forEach((vm) => {
+            drawVM(this, ctx, vm);
+        });
+
+        if (!this.selectedObjectIsRemoving) {
+            drawSelectedVMMenu(this, ctx, this.selectedViewModel);
+            drawSelectedRelationMenu(this, ctx, this.selectedConnection);
+        }
+
+        ctx.scale(1.0, 1.0);
+        ctx.translate(-this.canvasOffset.x, -this.canvasOffset.y);
+    }
+
 
     drawBackground(ctx) {
 
@@ -494,93 +644,81 @@ export class CanvasDraw {
         ctx.shadowOffsetY = 0;
         ctx.shadowBlur = 0;
 
+        let drawArcBackV = (x) => {
+            if (x === 0) {
+                drawLine(ctx, {
+                    x: -this.canvasOffset.x + 0,
+                    y: -this.canvasOffset.y + this.clientSize.height / 2
+                },{
+                    x: -this.canvasOffset.x + this.clientSize.width ,
+                    y: -this.canvasOffset.y + this.clientSize.height / 2
+                }, color, {
+                    lineWidth: 0.5, blur: 5
+                });
+            }
+
+            let i = x < 0 ? Math.PI / 2 : Math.PI * 3 / 2;
+            let rad = 2400000 / x;
+            drawArc(ctx, {
+                x: -this.canvasOffset.x + this.clientSize.width / 2 ,
+                y: -this.canvasOffset.y + this.clientSize.height/2 + rad + 2 * x
+            }, Math.abs(rad + x), -0.3 + i, 0.3 + i, color, {
+                lineWidth: 0.5, blur: 5
+            });
+        }
+        let drawArcBack = (x) => {
+            if (x === 0) {
+                drawLine(ctx, {
+                    x: -this.canvasOffset.x + this.clientSize.width / 2,
+                    y: -this.canvasOffset.y + 0
+                },{
+                    x: -this.canvasOffset.x + this.clientSize.width / 2,
+                    y: -this.canvasOffset.y + this.clientSize.height
+                }, color, {
+                    lineWidth: 0.5, blur: 5
+                });
+            }
+
+            let i = x > 0 ? Math.PI : 0;
+            let rad = 2400000 / x;
+            drawArc(ctx, {
+                x: -this.canvasOffset.x + this.clientSize.width / 2 + rad + 2 * x,
+                y: -this.canvasOffset.y + this.clientSize.height/2
+            }, Math.abs(rad + x), -0.3 + i, 0.3 + i, color, {
+                lineWidth: 0.5, blur: 5
+            });
+        }
+
+
+        let ofst = this.canvasOffset.x * 1.10 % 200;
+
+        drawArcBack(-800 + ofst);
+        drawArcBack(-600 + ofst);
+        drawArcBack(-400 + ofst);
+        drawArcBack(-200 + ofst);
+        drawArcBack(-0 + ofst);
+        drawArcBack(200 + ofst);
+        drawArcBack(400 + ofst);
+        drawArcBack(600 + ofst);
+        drawArcBack(800 + ofst);
+
+
+        ofst = this.canvasOffset.y * 1.10 % 200;
+
+        drawArcBackV(-800 + ofst);
+        drawArcBackV(-600 + ofst);
+        drawArcBackV(-400 + ofst);
+        drawArcBackV(-200 + ofst);
+        drawArcBackV(-0 + ofst);
+        drawArcBackV(200 + ofst);
+        drawArcBackV(400 + ofst);
+        drawArcBackV(600 + ofst);
+        drawArcBackV(800 + ofst);
+
         if (this.selectedObjectIsRemoving) {
             ctx.fillRect(-this.canvasOffset.x, -this.canvasOffset.y, 100, this.clientSize.height+8000)
         }
     }
 
-    drawCanvas(ctx) {
-        ctx.translate(this.canvasOffset.x, this.canvasOffset.y);
-        this.drawBackground(ctx);
 
-        drawSelectedVMBackground(ctx, this.selectedViewModel);
-        drawSelectedRelationMenuBackground(ctx, this.selectedConnection);
-
-        this.operationConnections = [];
-        this.viewModels.forEach((vm) => {
-            drawContainerConnection(this, ctx, vm);
-            drawOperationConnection(this, ctx, vm);
-        });
-
-        this.viewModels.forEach((vm) => {
-            drawEC(this, ctx, vm);
-        });
-
-        this.viewModels.forEach((vm) => {
-            drawECBindConnection(this, ctx, vm);
-        });
-
-        this.viewModels.forEach((vm) => {
-            drawVM(this, ctx, vm);
-        });
-
-        if (!this.selectedObjectIsRemoving) {
-            drawSelectedVMMenu(this, ctx, this.selectedViewModel);
-            drawSelectedRelationMenu(this, ctx, this.selectedConnection);
-        }
-
-        ctx.translate(-this.canvasOffset.x, -this.canvasOffset.y);
-    }
-
-    onDeleteButtonClicked(deleteButton) {
-        console.log('Delete Button clicked:', deleteButton);
-        let connection = deleteButton.connection;
-        console.log(deleteButton);
-        let processUrl = deleteButton.vm.model.processUrl;
-        this.controller.deleteConnection(processUrl, connection);
-    }
-
-    onChangeECState(vm, state) {
-        console.log('onChangeECState:', vm, state);
-        let processUrl = vm.model.processUrl;
-        return this.controller.changeECState(processUrl, vm.model.model, state);
-    }
-
-    validate() {
-        console.log('validate()');
-        // ViewModelとController内のモデルとの照合
-
-        // 描画中のViewModeについて
-        this.viewModels.forEach((vm) => {
-            let url = vm.model.processUrl;
-            this.controller.getProcesses().forEach((p) => {
-                if (p.url() === vm.model.processUrl) {
-                    let m = vm.model.model;
-                    if (vm.model.type === 'operation' && p) {
-                        p.props.operations.forEach((op) => {
-                            if (op.instanceName === m.instanceName) {
-                                vm.model.model = op;
-                            }
-                        });
-                    } else if (vm.model.type === 'container') {
-
-                    } else if (vm.model.type === 'container_operation') {
-                        p.props.containers.forEach((con) => {
-                            con.operations.forEach((op) => {
-                                if (op.instanceName === m.instanceName) {
-                                    vm.model.model = op;
-                                }
-                            })
-                        })
-                    } else if (vm.model.type === 'ec') {
-                        p.props.ecs.forEach((ec) => {
-                            if (ec.instanceName === m.instanceName) {
-                                vm.model.model = ec;
-                            }
-                        });
-                    }
-                }
-            })
-        })
-    }
 }

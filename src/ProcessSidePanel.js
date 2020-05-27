@@ -39,10 +39,10 @@ export default class ProcessSidePanel extends React.Component {
     }
 
     connectionPanels() {
-        console.log('ProcessSidePanel.connectionPanels()');
+        // console.log('ProcessSidePanel.connectionPanels()');
         let process = this.state.controller.getProcesses()[this.props.processIndex];
         return process.props.connections.map((c, i) => {
-            console.log('connection:', c);
+            // console.log('connection:', c);
             return (<ConnectionSidePanel process={process} connection={c} key={i}/>);
         });
     }
@@ -56,7 +56,7 @@ export default class ProcessSidePanel extends React.Component {
 
     brokerPanels() {
         let process = this.state.controller.getProcesses()[this.props.processIndex];
-        console.log(process.props.brokers);
+        // console.log(process.props.brokers);
         return process.props.brokers.map((c, i) => {
             return (<BrokerSidePanel process={process} broker={c} key={i}/>);
         });
@@ -65,7 +65,7 @@ export default class ProcessSidePanel extends React.Component {
 
     render() {
 
-        console.log('ProcessSidePanel.render()');
+        // console.log('ProcessSidePanel.render()');
         let titleIsActive = this.state.titleIsActive;
         let operationIsActive = this.state.operationIsActive;
         let containerIsActive = this.state.containerIsActive;

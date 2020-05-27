@@ -1,5 +1,5 @@
 import {drawEllipse, drawRect, drawText} from "./Drawing";
-import {includes, distanceToLine, offset, rotate, translate} from "./Dimension";
+//import {includes, distanceToLine, offset, rotate, translate} from "./Dimension";
 
 
 export function drawVM(drawer, ctx, vm) {
