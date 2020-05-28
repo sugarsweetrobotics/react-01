@@ -11,22 +11,17 @@ export default class ECSidePanel extends React.Component {
         this.state = {
             process: props.process,
             ec: props.ec,
-            boundOperations: [],
             titleIsActive: false,
             operationIsActive: false
         };
 
 
-        this.state.process.boundOperationInfos(props.ec).then((infos)=> {
-            if (!valueIsError(infos)) {
-                this.setState({boundOperations: infos})
-            }
-        });
+
     }
 
 
     operationPanels() {
-        return this.state.boundOperations.map((op, i) => {
+        return this.state.ec.boundOperations.map((op, i) => {
             return (<OperationSidePanel process={this.state.process} operation={op} key={i} useFullName={true}/>);
         });
     }
@@ -49,7 +44,7 @@ export default class ECSidePanel extends React.Component {
                                              type: 'ec',
                                              processUrl: this.state.process.url(),
                                              model: this.state.ec,
-                                             operations: this.state.boundOperations
+                                             operations: this.state.ec.boundOperations
                                          };
                                          e.dataTransfer.setData("application/my-app", JSON.stringify(data));
                                          e.dataTransfer.dropEffect = "move";

@@ -170,7 +170,16 @@ export async function updateProps(proc) {
         proc.connectionInfos().then((infos)=>{
             proc.props.connections = infos; return infos;
         }),
-        proc.ecInfos().then((infos)=>{ proc.props.ecs = infos; return infos; }),
+        proc.ecInfos().then((infos)=>{
+            let ps = infos.map((info) => {
+                return proc.boundOperationInfos(info).then((opInfos)=> {
+                    info.boundOperations = opInfos;
+                    return opInfos;
+                });
+            });
+            proc.props.ecs = infos;
+            return Promise.all(ps);
+        }),
         proc.brokerInfos().then((infos)=>{ proc.props.brokers = infos; return infos; }),
         ]
     );

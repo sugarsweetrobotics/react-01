@@ -426,7 +426,7 @@ export class CanvasDraw {
 
     onMouseDown(e) {
         let cp = this.clientPosition(e);
-        if (e.shiftKey) {
+        if (e.metaKey) {
             this.scrolling = true;
             this.pickedPoint = cp;
             return this;
