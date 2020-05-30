@@ -42,6 +42,7 @@ export default function process(url) {
             connections: [],
             ecs: [],
             brokers: [],
+            callbacks: [],
         },
 
 
@@ -126,8 +127,15 @@ export default function process(url) {
                 mode: 'cors'
             });
             return f.json();
-        }
+        },
 
+        callbackInfo: async(info) => {
+            let f = await fetch( url + '/process/callbacks/', {
+                method: 'GET',
+                mode: 'cors'
+            });
+            return f.json();
+        }
     };
 };
 
@@ -181,6 +189,7 @@ export async function updateProps(proc) {
             return Promise.all(ps);
         }),
         proc.brokerInfos().then((infos)=>{ proc.props.brokers = infos; return infos; }),
+        proc.callbackInfo().then((info)=>{ proc.props.callbacks = info; return info; }),
         ]
     );
     return p;
@@ -251,4 +260,32 @@ export async function executeOperation(procUrl, op) {
         });
         return f.json();
     }
+}
+
+
+export async function bindOperation(procUrl, ec, op) {
+    let instanceName = op.instanceName;
+    if (op.ownerContainerInstanceName) {
+        instanceName = op.ownerContainerInstanceName + ':' + instanceName;
+    }
+    let f = await fetch( procUrl + '/process/ecs/' + ec.instanceName + '/operations/', {
+        method: 'POST',
+        mode: 'cors',
+        body: JSON.stringify(op)
+    });
+    return f.json();
+
+}
+
+export async function unbindOperation(procUrl, ec, op) {
+    let instanceName = op.instanceName;
+    if (op.ownerContainerInstanceName) {
+        instanceName = op.ownerContainerInstanceName + ':' + instanceName;
+    }
+    let f = await fetch( procUrl + '/process/ecs/' + ec.instanceName + '/operations/' + instanceName + '/', {
+        method: 'DELETE',
+        mode: 'cors'
+    });
+    return f.json();
+
 }

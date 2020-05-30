@@ -44,7 +44,7 @@ export default class ECSidePanel extends React.Component {
                                              type: 'ec',
                                              processUrl: this.state.process.url(),
                                              model: this.state.ec,
-                                             operations: this.state.ec.boundOperations
+                                             ///operations: this.state.ec.boundOperations
                                          };
                                          e.dataTransfer.setData("application/my-app", JSON.stringify(data));
                                          e.dataTransfer.dropEffect = "move";

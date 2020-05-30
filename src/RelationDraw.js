@@ -71,7 +71,7 @@ export function drawECBindConnection(drawer, ctx, vm) {
     if (vm.type === 'ec') {
         drawer.viewModels.forEach((tgt) => {
             if (tgt.type === 'container_operation' || tgt.type === 'operation') {
-                vm.model.operations.forEach((op)=> {
+                vm.model.model.boundOperations.forEach((op)=> {
                     let fullInstanceName = op.instanceName;
                     if (op.ownerContainerInstanceName !== undefined) {
                         fullInstanceName = op.ownerContainerInstanceName + ':' + op.instanceName;
@@ -116,6 +116,57 @@ export function drawECBindConnection(drawer, ctx, vm) {
 }
 
 
+export function drawCallbackBindConnection(drawer, ctx, vm) {
+    let color = '#ffffff';
+    let padding = 10;
+    let stopPos = {x:vm.position.x - (vm.size.width-padding*3)/4 - padding/2, y: vm.position.y + vm.size.height/3 - padding};
+    let startPos = {x:vm.position.x, y: vm.position.y};
+    if (vm.type === 'callback') {
+        drawer.viewModels.forEach((tgt) => {
+            if (tgt.type === 'container_operation' || tgt.type === 'operation') {
+                let fullInstanceName = tgt.model.model.instanceName;
+                if (tgt.model.model.ownerContainerInstanceName !== undefined) {
+                    fullInstanceName = tgt.model.model.ownerContainerInstanceName + ':' + fullInstanceName;
+                }
+                vm.model.model.target.forEach((op)=> {
+                    if ((tgt.type === 'operation' && fullInstanceName === op.name) ||
+                        (tgt.type === 'container_operation' && fullInstanceName === op.name)) {
+
+                        drawLine(ctx, startPos, tgt.position, color);
+
+                        let line = {
+                            x0: startPos.x, y0: startPos.y,
+                            x1: tgt.position.x, y1: tgt.position.y
+                        };
+
+                        let point = crossingPointLineAndEllipse(line, {
+                            width: tgt.size.width,
+                            height: tgt.size.height
+                        }, 8);
+
+                        let dx = line.x0 - line.x1;
+                        let dy = -(line.y0 - line.y1) ;
+                        let theta = Math.atan2(dy, dx);
+
+                        let points = [
+                            {x: -10, y: 0},
+                            {x: 7, y: 6},
+                            {x: 7, y: -6}
+                        ];
+
+                        let newPoints = points.map(
+                            (p) => {
+                                return translate(rotate(p, -theta), point);
+                            }
+                        )
+                        drawPolygon(ctx, newPoints, color);
+
+                    }
+                });
+            }
+        });
+    }
+}
 
 export function drawContainerConnection(drawer, ctx, vm) {
     if (vm.type === 'container') {

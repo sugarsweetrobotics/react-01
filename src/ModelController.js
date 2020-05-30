@@ -1,6 +1,6 @@
 
 
-import process, {changeECState, deleteConnection, updateProps, invokeOperation, executeOperation} from './nerikiri';
+import process, {changeECState, deleteConnection, updateProps, invokeOperation, executeOperation, bindOperation, unbindOperation} from './nerikiri';
 
 export default class ModelController {
 
@@ -82,6 +82,20 @@ export default class ModelController {
         // console.log('ModelController.executeOperation:', processUrl, op);
         return executeOperation(processUrl, op).then((info) => {
             // console.log('OperationExecuted:', info);
+            this.update();
+            return info;
+        })
+    }
+
+    bindOperation(processUrl, ec, operation) {
+        return bindOperation(processUrl, ec, operation).then((info) => {
+            this.update();
+            return info;
+        })
+    }
+
+    unbindOperation(processUrl, ec, operation) {
+        return unbindOperation(processUrl, ec, operation).then((info) => {
             this.update();
             return info;
         })

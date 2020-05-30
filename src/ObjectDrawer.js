@@ -17,9 +17,13 @@ export function drawVM(drawer, ctx, vm) {
     } else if (vm.type === 'container_operation') {
         let color = '#00ff29';
         drawEllipse(ctx, vm.position, vm.size, color);
+    } else if (vm.type === 'callback') {
+        let color = '#ffffff';
+        drawEllipse(ctx, vm.position, vm.size, color);
     }
 
     let text = vm.model.model.instanceName;
+    if (vm.type === 'callback') text = vm.model.model.name;
     drawText(ctx, text, {x: vm.position.x, y: vm.position.y + 10}, color);
 }
 

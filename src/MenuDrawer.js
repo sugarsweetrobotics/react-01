@@ -22,6 +22,9 @@ export function drawSelectedVMBackground(ctx, vm) {
     } else if (vm.type === 'container_operation') {
         color = '#00ff29';
         drawEllipseShadow(ctx, vm.position, vm.size, color);
+    } else if (vm.type === 'callback') {
+        color = '#ffffff';
+        drawEllipseShadow(ctx, vm.position, vm.size, color);
     }
 }
 
@@ -148,6 +151,8 @@ function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgre
         color = '#ff0000';
     } else if (vm.type === 'container_operation') {
         color = '#00ff29';
+    } else if (vm.type === 'callback') {
+        color = '#ffffff';
     }
 
     {
@@ -198,6 +203,8 @@ function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgre
     {
         // インスタンス名を描画
         let instanceName = vm.model.model.instanceName;
+        if (vm.type === 'callback') instanceName = vm.model.model.name;
+
         let arrow_progress = progress > 33 ? 100 : progress * 3;
         let base_progress = progress > 66 ? 100 : (progress - 33) * 3;
         let theta = -Math.PI / 5;
@@ -234,6 +241,7 @@ function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgre
             if (vm.type === 'ec') title = 'ExecutionContext';
             else if (vm.type === 'container_operation') title = 'Container Operation';
             else if (vm.type === 'container') title = 'Container';
+            else if (vm.type === 'callback') title = 'Callback';
             drawText(ctx, title, {
                 x: rd * c + vm.position.x + 40,
                 y: rd * s + vm.position.y - 30
@@ -245,15 +253,21 @@ function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgre
         }
     }
 
-    menuParameter.ecButtonState = null;
+    //menuParameter.ecButtonState = null;
     if (vm.type === 'container') {
         return;
     }
 
     if (vm.type === 'ec') {
 
-        menuParameter.ecButtonState = {};
+       // menuParameter.ecButtonState = {};
         drawECSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress);
+    }
+
+    if (vm.type === 'callback') {
+
+        // menuParameter.ecButtonState = {};
+        drawCallbackSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress);
     }
 
 
@@ -263,22 +277,23 @@ function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgre
 }
 
 
-function drawECSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress) {
+function drawCallbackSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress) {
     let padding = 15;
     let stopPos = {x:vm.position.x - (vm.size.width-padding*3)/4 - padding/2, y: vm.position.y + vm.size.height/3 - padding};
     let startPos = {x:vm.position.x + (vm.size.width-padding*3)/4 + padding/2, y: vm.position.y + vm.size.height/3 - padding};
 
     let size = {width: (vm.size.width-padding*3)/2, height:vm.size.height/2-padding*3};
 
-    menuParameter.ecButtonState.viewModel = vm;
-    menuParameter.ecButtonState.startButtonState = {
+    menuParameter.callbackButtonState.viewModel = vm;
+    menuParameter.callbackButtonState.startButtonState = {
         position: startPos,
         size: size,
     };
-    menuParameter.ecButtonState.stopButtonState = {
+    menuParameter.callbackButtonState.stopButtonState = {
         position: stopPos,
         size: size,
     };
+    menuParameter.callbackButtonState.boundedOperationButtons = []
 
     let baseProgress = (progress) * 3 + 10;
     if (baseProgress > 100) baseProgress = 100;
@@ -325,54 +340,305 @@ function drawECSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimati
             });
 
             /// Bounded Operationごとのボタンを表示して登録
-            console.log(vm.model.model)
+            // console.log('EC: ', vm.model.model, menuParameter.ecButtonState)
 
-            menuParameter.ecButtonState.boundedOperationButtons = [];
-            let i = 0;
-            vm.model.model.boundOperations.forEach((op) => {
+
+            // Bind Operationボタンが押された状態
+            if (menuParameter.callbackButtonState.bindOperationState) {
+                // menuParameter.ecButtonState.boundedOperationButtons = [];
+                menuParameter.callbackButtonState.bindOperationTargetButtons = [];
+                drawRect(ctx, {
+                    x: vm.position.x + rd * c + 140,
+                    y: vm.position.y + rd * s + 40 * 1
+                }, { width: 260, height: 30}, color);
+
+                let instanceName = 'Bind Other Operation....';
+                drawText(ctx, instanceName,{
+                    x: vm.position.x + rd * c + 20,
+                    y: vm.position.y + rd * s + 5 + 40 * 1
+                }, color, { align: 'left'});
+                let i = 2;
+                drawer.viewModels.forEach((viewModel) => {
+                    if (viewModel.type === 'operation' || viewModel.type === 'container_operation') {
+                        instanceName = viewModel.model.model.instanceName;
+                        if (viewModel.model.model.ownerContainerInstanceName) {
+                            instanceName = viewModel.model.model.ownerContainerInstanceName + ':' + instanceName;
+                        }
+
+                        drawRect(ctx, {
+                            x: vm.position.x + rd * c + 160,
+                            y: vm.position.y + rd * s + 40 * i
+                        }, { width: 260, height: 30}, color);
+
+                        drawText(ctx, instanceName,{
+                            x: vm.position.x + rd * c + 40,
+                            y: vm.position.y + rd * s + 5 + 40 * i
+                        }, color, { align: 'left'});
+
+                        menuParameter.callbackButtonState.bindOperationTargetButtons.push({
+                            position: {
+                                x: vm.position.x + rd * c + 160,
+                                y: vm.position.y + rd * s + 40 * i
+                            }, size: {width: 260, height: 30}, ec: vm, viewModel: viewModel
+                        });
+                        i++;
+                    }
+                })
+            } else {
+                menuParameter.callbackButtonState.boundedOperationButtons = [];
+                let i = 0;
+                console.log('CallbackVm:,', vm);
+                vm.model.model.target.forEach((op) => {
+                    drawRect(ctx, {
+                        x: vm.position.x + rd * c + 140,
+                        y: vm.position.y + rd * s + 40 * (i + 1)
+                    }, {width: 260, height: 30}, color);
+
+                    let instanceName = op.name;
+
+                    drawText(ctx, instanceName, {
+                        x: vm.position.x + rd * c + 20,
+                        y: vm.position.y + rd * s + 5 + 40 * (i + 1)
+                    }, color, {align: 'left'});
+
+
+                    menuParameter.callbackButtonState.boundedOperationButtons.push({
+                        position: {
+                            x: vm.position.x + rd * c + 140,
+                            y: vm.position.y + rd * s + 40 * (i + 1)
+                        }, size: {width: 260, height: 30}, operation: op
+                    });
+
+                    if (menuParameter.callbackButtonState.selectOperationState) {
+                        let tgtop = menuParameter.callbackButtonState.selectedButton.operation;
+                        if (tgtop && tgtop == op) {
+                            /// DELETEボタン表示
+                            drawRect(ctx, {
+                                x: vm.position.x + rd * c + 330,
+                                y: vm.position.y + rd * s + 40 * (i + 1)
+                            }, {width: 100, height: 30}, color);
+
+                            drawText(ctx, 'DELETE', {
+                                x: vm.position.x + rd * c + 330,
+                                y: vm.position.y + rd * s + 5 + 40 * (i + 1)
+                            }, color,);
+
+                            menuParameter.callbackButtonState.selectOperationState.deleteButton = {
+                                position: {
+                                    x: vm.position.x + rd * c + 330,
+                                    y: vm.position.y + rd * s + 40 * (i + 1)
+                                }, size: {width: 100, height: 30}, ec: vm, operation: op
+                            };
+                        }
+                    }
+
+                    i++;
+
+
+
+                });
                 drawRect(ctx, {
                     x: vm.position.x + rd * c + 140,
                     y: vm.position.y + rd * s + 40 * (i+1)
                 }, { width: 260, height: 30}, color);
 
-                let instanceName = op.instanceName;
-                if (op.ownerContainerInstanceName) {
-                    instanceName = op.ownerContainerInstanceName + ':' + instanceName;
-                }
+                let instanceName = 'Bind Other Operation....';
                 drawText(ctx, instanceName,{
                     x: vm.position.x + rd * c + 20,
                     y: vm.position.y + rd * s + 5 + 40 * (i+1)
                 }, color, { align: 'left'});
 
+                menuParameter.callbackButtonState.boundedOperationButtons.push({
+                    position:{
+                        x: vm.position.x + rd * c + 140,
+                        y: vm.position.y + rd * s + 40 * (i+1)
+                    }, size: { width: 260, height: 30}, operation: null
+                });
+            }
+        }
+    }
+}
+
+function drawECSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress) {
+    // console.log('drawECSpecialMenu');
+    let padding = 15;
+    let stopPos = {x:vm.position.x - (vm.size.width-padding*3)/4 - padding/2, y: vm.position.y + vm.size.height/3 - padding};
+    let startPos = {x:vm.position.x + (vm.size.width-padding*3)/4 + padding/2, y: vm.position.y + vm.size.height/3 - padding};
+
+    let size = {width: (vm.size.width-padding*3)/2, height:vm.size.height/2-padding*3};
+
+    menuParameter.ecButtonState.viewModel = vm;
+    menuParameter.ecButtonState.startButtonState = {
+        position: startPos,
+        size: size,
+    };
+    menuParameter.ecButtonState.stopButtonState = {
+        position: stopPos,
+        size: size,
+    };
+    menuParameter.ecButtonState.boundedOperationButtons = []
+
+    let baseProgress = (progress) * 3 + 10;
+    if (baseProgress > 100) baseProgress = 100;
+
+    let arrowProgress = progress < 30 ? 0 :(progress - 30) * 3 + 10;
+    if (arrowProgress > 100) arrowProgress = 100;
+
+    let menuProgress = progress < 60 ? 0 :(progress - 60) * 3 + 10;
+    if (menuProgress > 100) menuProgress = 100;
+
+    let theta = Math.PI / 4;
+
+    // 右下にBound Operationsのメニューを描画します．
+    let maxBaseLength = 200;
+    let c = Math.cos(theta);
+    let s = Math.sin(theta);
+    let rr = radius - 20;
+    let rd = rr + (100) / 100.0 * baseProgress;
+    let base_length = maxBaseLength / 100.0 * arrowProgress;
+    drawLine(ctx, {x: vm.position.x + rr * c, y: vm.position.y + rr * s}, {x: rd * c + vm.position.x, y: rd*s + vm.position.y},
+        color);
+    if (baseProgress > 95) {
+        drawLine(ctx, {
+                x: rd * c + vm.position.x,
+                y: rd * s + vm.position.y
+            }, {x: rd * c + vm.position.x + base_length, y: rd * s + vm.position.y},
+            color);
+
+        if (arrowProgress > 80) {
+            // ここからがBound Operationのメニューを表示
+            drawText(ctx, 'Bound Operations', {
+                x: vm.position.x + rd * c + 150,
+                y: vm.position.y + rd * s - 10
+            }, color);
+
+            drawRect(ctx, {
+                x: vm.position.x + rd * c + 175,
+                y: vm.position.y + rd * s + 3
+            }, {width: 50, height: 5}, color, {
+                stroke: false,
+                fillColor: 'white',
+                fill: true,
+                lineWidth: 1.0,
+            });
+
+            /// Bounded Operationごとのボタンを表示して登録
+            // console.log('EC: ', vm.model.model, menuParameter.ecButtonState)
+
+
+            // Bind Operationボタンが押された状態
+            if (menuParameter.ecButtonState.bindOperationState) {
+                // menuParameter.ecButtonState.boundedOperationButtons = [];
+                menuParameter.ecButtonState.bindOperationTargetButtons = [];
+                drawRect(ctx, {
+                    x: vm.position.x + rd * c + 140,
+                    y: vm.position.y + rd * s + 40 * 1
+                }, { width: 260, height: 30}, color);
+
+                let instanceName = 'Bind Other Operation....';
+                drawText(ctx, instanceName,{
+                    x: vm.position.x + rd * c + 20,
+                    y: vm.position.y + rd * s + 5 + 40 * 1
+                }, color, { align: 'left'});
+                let i = 2;
+                drawer.viewModels.forEach((viewModel) => {
+                    if (viewModel.type === 'operation' || viewModel.type === 'container_operation') {
+                        instanceName = viewModel.model.model.instanceName;
+                        if (viewModel.model.model.ownerContainerInstanceName) {
+                            instanceName = viewModel.model.model.ownerContainerInstanceName + ':' + instanceName;
+                        }
+
+                        drawRect(ctx, {
+                            x: vm.position.x + rd * c + 160,
+                            y: vm.position.y + rd * s + 40 * i
+                        }, { width: 260, height: 30}, color);
+
+                        drawText(ctx, instanceName,{
+                            x: vm.position.x + rd * c + 40,
+                            y: vm.position.y + rd * s + 5 + 40 * i
+                        }, color, { align: 'left'});
+
+                        menuParameter.ecButtonState.bindOperationTargetButtons.push({
+                            position: {
+                                x: vm.position.x + rd * c + 160,
+                                y: vm.position.y + rd * s + 40 * i
+                            }, size: {width: 260, height: 30}, ec: vm, viewModel: viewModel
+                        });
+                        i++;
+                    }
+                })
+            } else {
+                menuParameter.ecButtonState.boundedOperationButtons = [];
+                let i = 0;
+                vm.model.model.boundOperations.forEach((op) => {
+                    drawRect(ctx, {
+                        x: vm.position.x + rd * c + 140,
+                        y: vm.position.y + rd * s + 40 * (i + 1)
+                    }, {width: 260, height: 30}, color);
+
+                    let instanceName = op.instanceName;
+                    if (op.ownerContainerInstanceName) {
+                        instanceName = op.ownerContainerInstanceName + ':' + instanceName;
+                    }
+                    drawText(ctx, instanceName, {
+                        x: vm.position.x + rd * c + 20,
+                        y: vm.position.y + rd * s + 5 + 40 * (i + 1)
+                    }, color, {align: 'left'});
+
+
+                    menuParameter.ecButtonState.boundedOperationButtons.push({
+                        position: {
+                            x: vm.position.x + rd * c + 140,
+                            y: vm.position.y + rd * s + 40 * (i + 1)
+                        }, size: {width: 260, height: 30}, operation: op
+                    });
+
+                    if (menuParameter.ecButtonState.selectOperationState) {
+                        let tgtop = menuParameter.ecButtonState.selectedButton.operation;
+                        if (tgtop && tgtop == op) {
+                            /// DELETEボタン表示
+                            drawRect(ctx, {
+                                x: vm.position.x + rd * c + 330,
+                                y: vm.position.y + rd * s + 40 * (i + 1)
+                            }, {width: 100, height: 30}, color);
+
+                            drawText(ctx, 'DELETE', {
+                                x: vm.position.x + rd * c + 330,
+                                y: vm.position.y + rd * s + 5 + 40 * (i + 1)
+                            }, color,);
+
+                            menuParameter.ecButtonState.selectOperationState.deleteButton = {
+                                position: {
+                                    x: vm.position.x + rd * c + 330,
+                                    y: vm.position.y + rd * s + 40 * (i + 1)
+                                }, size: {width: 100, height: 30}, ec: vm, operation: op
+                            };
+                        }
+                    }
+
+                    i++;
+
+
+
+                });
+                drawRect(ctx, {
+                    x: vm.position.x + rd * c + 140,
+                    y: vm.position.y + rd * s + 40 * (i+1)
+                }, { width: 260, height: 30}, color);
+
+                let instanceName = 'Bind Other Operation....';
+                drawText(ctx, instanceName,{
+                    x: vm.position.x + rd * c + 20,
+                    y: vm.position.y + rd * s + 5 + 40 * (i+1)
+                }, color, { align: 'left'});
 
                 menuParameter.ecButtonState.boundedOperationButtons.push({
                     position:{
                         x: vm.position.x + rd * c + 140,
                         y: vm.position.y + rd * s + 40 * (i+1)
-                    }, size: { width: 260, height: 30}, operation: op
+                    }, size: { width: 260, height: 30}, operation: null
                 });
-
-
-                i++;
-            });
-
-            drawRect(ctx, {
-                x: vm.position.x + rd * c + 140,
-                y: vm.position.y + rd * s + 40 * (i+1)
-            }, { width: 260, height: 30}, color);
-
-            let instanceName = 'Bind Other Operation....';
-            drawText(ctx, instanceName,{
-                x: vm.position.x + rd * c + 20,
-                y: vm.position.y + rd * s + 5 + 40 * (i+1)
-            }, color, { align: 'left'});
-
-            menuParameter.ecButtonState.boundedOperationButtons.push({
-                position:{
-                    x: vm.position.x + rd * c + 140,
-                    y: vm.position.y + rd * s + 40 * (i+1)
-                }, size: { width: 260, height: 30}, operation: null
-            });
+            }
         }
     }
 }

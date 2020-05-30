@@ -1,6 +1,11 @@
 
 import {drawVM, drawEC} from "./ObjectDrawer";
-import {drawContainerConnection, drawECBindConnection, drawOperationConnection} from "./RelationDraw";
+import {
+    drawCallbackBindConnection,
+    drawContainerConnection,
+    drawECBindConnection,
+    drawOperationConnection
+} from "./RelationDraw";
 import {includes, distanceToLine, distance} from "./Dimension";
 import {menuParameter} from "./MenuParameter";
 import {
@@ -11,7 +16,7 @@ import {
 } from "./MenuDrawer";
 import process, {connect, urlToAddr, urlToPort} from "./nerikiri";
 
-import {drawLine, drawArc} from "./Drawing";
+import {drawLine, drawArc, drawText} from "./Drawing";
 
 export let ViewModel = (m, pos) => {
     if (m.type === 'container') {
@@ -40,6 +45,13 @@ export let ViewModel = (m, pos) => {
             type: 'ec',
             position: pos,
             size: {width: 150, height: 150},
+            model: m
+        }
+    } else if (m.type === 'callback') {
+        return {
+            type: 'callback',
+            position: pos,
+            size: {width: 150, height: 50},
             model: m
         }
     }
@@ -134,6 +146,7 @@ export class CanvasDraw {
     }
 
     addModel(model, point) {
+        /// 重複登録を避ける
         for(let vm of this.viewModels) {
             let m = vm.model;
             if (model.type === m.type) {
@@ -144,6 +157,8 @@ export class CanvasDraw {
                 } else if (model.type === 'container' && m.model.instanceName === model.model.instanceName) {
                     return this;
                 } else if (model.type === 'ec' && m.model.instanceName === model.model.instanceName) {
+                    return this;
+                } else if (model.type === 'callback' && m.model.name === model.model.name) {
                     return this;
                 }
             }
@@ -245,7 +260,8 @@ export class CanvasDraw {
 
     checkMenuButtonClicked(point) {
         /// ECのメニューが表示されているとき
-        if (menuParameter.ecButtonState) {
+        if (menuParameter.ecButtonState.startButtonState) {
+            console.info('check EC Button state');
             if (includes(menuParameter.ecButtonState.startButtonState, point)) {
                 this.onChangeECState(menuParameter.ecButtonState.viewModel, 'started');
                 return true;
@@ -253,10 +269,71 @@ export class CanvasDraw {
                 this.onChangeECState(menuParameter.ecButtonState.viewModel, 'stopped');
                 return true;
             }
-            return false;
+
+            if (menuParameter.ecButtonState.bindOperationTargetButtons) {
+                menuParameter.ecButtonState.bindOperationTargetButtons.forEach((btn) => {
+                    if (includes(btn, point)) {
+                        console.log('Bind Operation');
+                        this.onBindOperationToEC(btn.ec, btn.viewModel);
+                    }
+                })
+            }
+
+            //// Bounded Operationのリストが表示されているとき
+            if (menuParameter.ecButtonState.boundedOperationButtons.length > 0) {
+                for(let i = 0;i <  menuParameter.ecButtonState.boundedOperationButtons.length;++i) {
+                    let btn =  menuParameter.ecButtonState.boundedOperationButtons[i];
+                    if (includes(btn, point)) {
+                        console.log('pushed button:', btn);
+                        menuParameter.ecButtonState.selectedButton = btn;
+                        if (btn.operation === null) {
+                            // Bind Operation Buttonが押された
+                            // console.log('pushed bind operation');
+                            menuParameter.ecButtonState.bindOperationState = true;
+                            menuParameter.ecButtonState.selectOperationState = null;
+                            //menuParameter.ecButtonState.bindOperationTargetButtons = []
+                        } else {
+                            // どれかの選択肢が押された
+                            // console.log('pushed not bind operation');
+                            menuParameter.ecButtonState.bindOperationState = false;
+                            menuParameter.ecButtonState.selectOperationState = {};
+
+
+                            //this.onBindOperationToEC(btn.ec, btn.viewModel);
+
+                        }
+                        return true;
+                    }
+                    menuParameter.ecButtonState.bindOperationState = false;
+                    //if (menuParameter.ecButtonState.selectOperationState) {
+                    //    menuParameter.ecButtonState.selectOperationState = null;
+                    //}
+                }
+
+                /// DELETEボタン確認
+                console.log('DELETE?:', menuParameter.ecButtonState);
+                if (menuParameter.ecButtonState.selectOperationState) {
+                    console.log('DELETE BUTTON  CHECK...');
+                    let deleteButton = menuParameter.ecButtonState.selectOperationState.deleteButton;
+                    if (deleteButton && includes(deleteButton, point)) {
+                        console.log('DELETED BOUND OPERATION!!;', deleteButton.operation);
+                        this.onUnbindOperation(deleteButton.ec, deleteButton.operation);
+                        return true;
+                    } else {
+                        menuParameter.ecButtonState.selectOperationState = null;
+                    }
+                }
+
+
+            }
+
+            menuParameter.ecButtonState = {};
         }
 
+        /// Operationの操作ボタンが表示されているとき
         if (menuParameter.operationControlButtonState) {
+
+            console.info('check Operation Button state');
             if (distance(point, menuParameter.operationControlButtonState.button.position) < menuParameter.operationControlButtonState.button.radius) {
                 if (!menuParameter.operationControlButtonState.pushedButton) {
                     menuParameter.operationControlButtonState.pushedButton = {};
@@ -538,6 +615,23 @@ export class CanvasDraw {
         });
     }
 
+    onUnbindOperation(ecVM, operation) {
+        let processUrl = ecVM.model.processUrl;
+        console.log('onUnbindOperation(', ecVM, operation, ')');
+        this.controller.unbindOperation(processUrl, ecVM.model.model, operation).then((info) => {
+            this.validate();
+        })
+    }
+
+    onBindOperationToEC(ecVM, opVM) {
+        let processUrl = ecVM.model.processUrl;
+        console.log('onBindOperationToEC(', ecVM, opVM, ')')
+        this.controller.bindOperation(processUrl, ecVM.model.model, opVM.model.model).then((info) => {
+            this.validate();
+        })
+    }
+
+
     validate() {
         //console.log('validate()');
         // ViewModelとController内のモデルとの照合
@@ -596,6 +690,7 @@ export class CanvasDraw {
 
         this.viewModels.forEach((vm) => {
             drawECBindConnection(this, ctx, vm);
+            drawCallbackBindConnection(this, ctx, vm);
         });
 
         this.viewModels.forEach((vm) => {
@@ -628,14 +723,14 @@ export class CanvasDraw {
 
         ctx.fillStyle = 'white';
         ctx.beginPath();
-        ctx.ellipse(400 - 4000, 200, 100, 100, 0, 0, Math.PI * 2);
+        ctx.ellipse(400 - 4000 -this.canvasOffset.x , 200 -this.canvasOffset.y, 100, 100, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.closePath();
 
 
         ctx.fillStyle = 'white';
         ctx.beginPath();
-        ctx.ellipse(200 - 4000, 100, 80, 80, 0, 0, Math.PI * 2);
+        ctx.ellipse(200 - 4000 -this.canvasOffset.x, 100-this.canvasOffset.y, 80, 80, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.closePath();
 
@@ -644,7 +739,25 @@ export class CanvasDraw {
         ctx.shadowOffsetY = 0;
         ctx.shadowBlur = 0;
 
-        let drawArcBackV = (x) => {
+        let drawArcBackV = (x, w) => {
+            if (w === undefined) w = 0.5;
+            let p = Math.floor(this.canvasOffset.y * 1.1 / 200);
+            if (p < 0) p += 1;
+            let x_ = x / 200;
+            let ofst = this.canvasOffset.y * 1.1 % 200;
+            x = x + ofst;
+            if ((x_ - p) % 4 === 0) {
+                w = 2.0
+                let text = ( x_ - p ) / 4 * 1000;
+                drawText(ctx, text, {
+                    y: -this.canvasOffset.y + this.clientSize.height / 2 - 20 + x,
+                    x: -this.canvasOffset.x + 20
+                }, color, {
+                    align: 'left'
+                })
+            }
+
+
             if (x === 0) {
                 drawLine(ctx, {
                     x: -this.canvasOffset.x + 0,
@@ -653,7 +766,7 @@ export class CanvasDraw {
                     x: -this.canvasOffset.x + this.clientSize.width ,
                     y: -this.canvasOffset.y + this.clientSize.height / 2
                 }, color, {
-                    lineWidth: 0.5, blur: 5
+                    lineWidth: w, blur: 5
                 });
             }
 
@@ -663,10 +776,30 @@ export class CanvasDraw {
                 x: -this.canvasOffset.x + this.clientSize.width / 2 ,
                 y: -this.canvasOffset.y + this.clientSize.height/2 + rad + 2 * x
             }, Math.abs(rad + x), -0.3 + i, 0.3 + i, color, {
-                lineWidth: 0.5, blur: 5
+                lineWidth: w, blur: 5
             });
         }
-        let drawArcBack = (x) => {
+        let drawArcBack = (x, w) => {
+            if (w === undefined) w = 0.5;
+            let p = Math.floor(this.canvasOffset.x * 1.1 / 200);
+            if (p < 0) p += 1;
+            let x_ = x / 200;
+
+            let ofst = this.canvasOffset.x * 1.1 % 200;
+            x = x + ofst;
+
+
+            if ((x_ - p) % 4 === 0) {
+                w = 2.0
+                let text = ( x_ - p ) / 4 * 1000;
+                drawText(ctx, text, {
+                    y: -this.canvasOffset.y + 20,
+                    x: -this.canvasOffset.x + this.clientSize.width / 2 + 15 + x
+                }, color, {
+                    align: 'left'
+                })
+            }
+
             if (x === 0) {
                 drawLine(ctx, {
                     x: -this.canvasOffset.x + this.clientSize.width / 2,
@@ -675,7 +808,7 @@ export class CanvasDraw {
                     x: -this.canvasOffset.x + this.clientSize.width / 2,
                     y: -this.canvasOffset.y + this.clientSize.height
                 }, color, {
-                    lineWidth: 0.5, blur: 5
+                    lineWidth: w, blur: 5
                 });
             }
 
@@ -685,40 +818,35 @@ export class CanvasDraw {
                 x: -this.canvasOffset.x + this.clientSize.width / 2 + rad + 2 * x,
                 y: -this.canvasOffset.y + this.clientSize.height/2
             }, Math.abs(rad + x), -0.3 + i, 0.3 + i, color, {
-                lineWidth: 0.5, blur: 5
+                lineWidth: w, blur: 5
             });
         }
 
+        drawArcBack(-800);
+        drawArcBack(-600);
+        drawArcBack(-400);
+        drawArcBack(-200);
+        drawArcBack(-0);
+        drawArcBack(200);
+        drawArcBack(400);
+        drawArcBack(600);
+        drawArcBack(800);
 
-        let ofst = this.canvasOffset.x * 1.10 % 200;
-
-        drawArcBack(-800 + ofst);
-        drawArcBack(-600 + ofst);
-        drawArcBack(-400 + ofst);
-        drawArcBack(-200 + ofst);
-        drawArcBack(-0 + ofst);
-        drawArcBack(200 + ofst);
-        drawArcBack(400 + ofst);
-        drawArcBack(600 + ofst);
-        drawArcBack(800 + ofst);
+        drawArcBackV(-800);
+        drawArcBackV(-600);
+        drawArcBackV(-400);
+        drawArcBackV(-200);
+        drawArcBackV(-0 );
+        drawArcBackV(200);
+        drawArcBackV(400);
+        drawArcBackV(600);
+        drawArcBackV(800);
 
 
-        ofst = this.canvasOffset.y * 1.10 % 200;
-
-        drawArcBackV(-800 + ofst);
-        drawArcBackV(-600 + ofst);
-        drawArcBackV(-400 + ofst);
-        drawArcBackV(-200 + ofst);
-        drawArcBackV(-0 + ofst);
-        drawArcBackV(200 + ofst);
-        drawArcBackV(400 + ofst);
-        drawArcBackV(600 + ofst);
-        drawArcBackV(800 + ofst);
 
         if (this.selectedObjectIsRemoving) {
             ctx.fillRect(-this.canvasOffset.x, -this.canvasOffset.y, 100, this.clientSize.height+8000)
         }
     }
-
 
 }

@@ -5,6 +5,7 @@ import ContainerSidePanel from "./ContainerSidePanel";
 import ConnectionSidePanel from "./ConnectionSidePanel";
 import ECSidePanel from "./ECSidePanel";
 import BrokerSidePanel from "./BrokerSidePanel";
+import CallbackSidePanel from "./CallbackSidePanel";
 
 export default class ProcessSidePanel extends React.Component {
 
@@ -18,6 +19,7 @@ export default class ProcessSidePanel extends React.Component {
             operationIsActive: false,
             containerIsActive: false,
             connectionIsActive: false,
+            callbackIsActive: false,
             ecIsActive: false,
             brokerIsActive: false,
             info: {instanceName: ''},
@@ -62,6 +64,11 @@ export default class ProcessSidePanel extends React.Component {
         });
     }
 
+    callbackPanels() {
+        let process = this.state.controller.getProcesses()[this.props.processIndex];
+        return (<CallbackSidePanel process={process} />);
+    }
+
 
     render() {
 
@@ -70,6 +77,7 @@ export default class ProcessSidePanel extends React.Component {
         let operationIsActive = this.state.operationIsActive;
         let containerIsActive = this.state.containerIsActive;
         let connectionIsActive = this.state.connectionIsActive;
+        let callbackIsActive = this.state.callbackIsActive;
         let ecIsActive = this.state.ecIsActive;
         let brokerIsActive = this.state.brokerIsActive;
 
@@ -160,6 +168,22 @@ export default class ProcessSidePanel extends React.Component {
                         </Accordion.Title>
                         <Accordion.Content  style={{padding: 0, marginTop: 0}} active={connectionIsActive}>
                             {this.connectionPanels()}
+                        </Accordion.Content>
+                    </Accordion>
+
+
+                    {/* Callbacks */}
+                    <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
+                        <Accordion.Title index={5}
+                                         active={callbackIsActive}
+                                         onClick={()=>{this.setState({callbackIsActive: !this.state.callbackIsActive})}}
+                                         style={{padding: 0, marginBottom: 0}}
+                        >
+                            <Icon name="dropdown"></Icon>
+                            {"Callbacks"}
+                        </Accordion.Title>
+                        <Accordion.Content  style={{padding: 0, marginTop: 0}} active={callbackIsActive}>
+                            {this.callbackPanels()}
                         </Accordion.Content>
                     </Accordion>
                 </Accordion.Content>
