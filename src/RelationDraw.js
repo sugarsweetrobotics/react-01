@@ -247,13 +247,13 @@ export function drawTopicConnection(drawer, ctx, vm) {
                         drawPolygon(ctx, newPoints, color);
 
 
-                        if (c.type === 'event') {
-                            let p = translate(rotate({x:20, y:20}, -theta), point);
-                            drawText(ctx, 'e', p, color);
-                        }
+                        //if (c.type === 'event') {
+                        //    let p = translate(rotate({x:20, y:20}, -theta), point);
+                        //    drawText(ctx, 'e', p, color);
+                        //}
 
-                        let p = translate(rotate({x:20, y:-20}, -theta), point);
-                        drawText(ctx, c.input.target.name, p, color);
+                        //let p = translate(rotate({x:20, y:-20}, -theta), point);
+                        //drawText(ctx, c.input.target.name, p, color);
 
                     }
                 });
