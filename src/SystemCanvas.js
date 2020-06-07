@@ -9,7 +9,7 @@ export default class SystemCanvas extends React.Component {
 
         this.state = {
             backgroundColor: '#000000',
-            model: new CanvasDraw(props.controller),
+            model: new CanvasDraw(props.controller, this.updateCanvas.bind(this)),
         };
     }
 
@@ -64,7 +64,9 @@ export default class SystemCanvas extends React.Component {
                     onDrop={(e) => {
                         this.setState({model: this.state.model.addModel(JSON.parse(e.dataTransfer.getData("application/my-app")), this.state.model.clientPosition(e))});
                         this.setState({backgroundColor: 'black'})
-                    }}/>
+                    }}
+
+            />
         )
     }
 }

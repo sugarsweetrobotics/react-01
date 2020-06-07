@@ -56,6 +56,80 @@ export let crossingPointLineAndEllipse = (line, ellipse, margin) => {
         y: -(ellipse.height/2) * Math.sin(theta) + line.y1 - margin * Math.sin(theta2)};
 }
 
+
+export let crossingPointLineAndRect = (line, rect, margin) => {
+    let dx = line.x0 - line.x1;
+    let dy = -(line.y0 - line.y1) ; // dyが正なら画面下向きの矢印
+    if (dx === 0) {
+        return {x: line.x1, y: line.y1 + (dy > 0 ? rect.height/2 - margin : -rect.height/2 - margin)}
+    }
+    let a = dy / dx;
+    let b = line.y1 + a * line.x1;
+    let theta2 = Math.atan2(dy, dx);
+    if (dx > 0 && dy > 0) { // 画面左下向き
+        if (dy/dx < rect.height/ rect.width) { // 右側の辺に接する
+            let x = line.x1 + rect.width/2;
+            return {
+                x: x + margin * Math.cos(theta2),
+                y: (-a * x + b) - margin * Math.sin(theta2)
+            }
+        } else { // 上の辺に接する
+            let y = line.y1 - rect.height / 2;
+            return {
+                x: - (y - b) / a + margin * Math.cos(theta2),
+                y: y - margin * Math.sin(theta2)
+            }
+        }
+    } else if (dx < 0 && dy > 0) {
+        if (-dy/dx < rect.height/ rect.width) { // 左側の辺に接する
+            let x = line.x1 - rect.width/2;
+            return {
+                x: x + margin * Math.cos(theta2),
+                y: (-a * x + b) - margin * Math.sin(theta2)
+            }
+        } else { // 上の辺に接する
+            let y = line.y1 - rect.height / 2;
+            return {
+                x: - (y - b) / a + margin * Math.cos(theta2),
+                y: y - margin * Math.sin(theta2)
+            }
+        }
+    } else if (dx < 0 && dy < 0) { // 画面右上向き
+        console.log('C1', dy/dx, rect.height/rect.width);
+        if (dy/dx < rect.height/ rect.width) { // 左側の辺に接する
+            let x = line.x1 - rect.width/2;
+            return {
+                x: x + margin * Math.cos(theta2),
+                y: (-a * x + b) - margin * Math.sin(theta2)
+            }
+        } else { // 下の辺に接する
+            let y = line.y1 + rect.height / 2;
+            return {
+                x: - (y - b) / a + margin * Math.cos(theta2),
+                y: y - margin * Math.sin(theta2)
+            }
+        }
+    } else if (dx > 0 && dy < 0) {
+        if (-dy/dx < rect.height/ rect.width) { // 左側の辺に接する
+            let x = line.x1 + rect.width/2;
+            return {
+                x: x + margin * Math.cos(theta2),
+                y: (-a * x + b) - margin * Math.sin(theta2)
+            }
+        } else { // 上の辺に接する
+            let y = line.y1 + rect.height / 2;
+            return {
+                x: - (y - b) / a + margin * Math.cos(theta2),
+                y: y - margin * Math.sin(theta2)
+            }
+        }
+    }
+    let theta = Math.atan2(dy *  rect.width / rect.height, dx);
+    return {x: (rect.width/2) * Math.cos(theta) + line.x1 + margin * Math.cos(theta2),
+        y: -(rect.height/2) * Math.sin(theta) + line.y1 - margin * Math.sin(theta2)};
+}
+
+
 export let distance = (x0, x1) => {
     return Math.sqrt((x0.x - x1.x)**2 + (x0.y - x1.y)**2);
 }

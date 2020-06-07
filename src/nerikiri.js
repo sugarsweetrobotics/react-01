@@ -41,6 +41,7 @@ export default function process(url) {
             containers: [],
             connections: [],
             ecs: [],
+            topics: [],
             brokers: [],
             callbacks: [],
         },
@@ -95,6 +96,19 @@ export default function process(url) {
             }
         },
 
+        topicConnectionInfos: async(topicInfo) => {
+            if (typeof(topicInfo) === 'undefined') {
+                return {}
+            }
+
+            let f = await fetch(url + '/process/topics/' + topicInfo.instanceName + '/connections/', {
+                method: 'GET',
+                mode: 'cors'
+            });
+            let v = f.json();
+            return v;
+        },
+
         ecInfos: async(ecInfo) => {
 
             if (ecInfo === undefined) {
@@ -115,6 +129,14 @@ export default function process(url) {
 
         brokerInfos: async() => {
             let f = await fetch(url + "/process/brokers/", {
+                method: 'GET',
+                mode: 'cors'
+            });
+            return f.json();
+        },
+
+        topicInfos: async() => {
+            let f = await fetch(url + "/process/topics/", {
                 method: 'GET',
                 mode: 'cors'
             });
@@ -173,6 +195,20 @@ export async function updateProps(proc) {
                 });
             });
             proc.props.containers = infos;
+            return Promise.all(ps);
+        }),
+        proc.topicInfos().then((infos) => {
+            proc.props.topics = infos;
+            let ps = infos.map((info) => {
+                info.connections = {
+                    input: [],
+                    output: []
+                };
+                return proc.topicConnectionInfos(info).then((cis) => {
+                    info.connections = cis;
+                    return cis;
+                });
+            });
             return Promise.all(ps);
         }),
         proc.connectionInfos().then((infos)=>{

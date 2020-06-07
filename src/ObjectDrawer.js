@@ -15,11 +15,14 @@ export function drawVM(drawer, ctx, vm) {
         color = '#ff0000';
         drawEllipse(ctx, vm.position, vm.size, color);
     } else if (vm.type === 'container_operation') {
-        let color = '#00ff29';
+        color = '#00ff29';
         drawEllipse(ctx, vm.position, vm.size, color);
     } else if (vm.type === 'callback') {
-        let color = '#ffffff';
+        color = '#ffffff';
         drawEllipse(ctx, vm.position, vm.size, color);
+    } else if (vm.type === 'topic') {
+        color = '#ff0fff';
+        drawRect(ctx, vm.position, vm.size, color);
     }
 
     let text = vm.model.model.instanceName;

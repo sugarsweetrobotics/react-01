@@ -1,14 +1,15 @@
 import {drawEllipse, drawLine, drawPolygon, drawText} from "./Drawing";
-import {rotate, translate, crossingPointLineAndEllipse} from "./Dimension";
+import {rotate, translate, crossingPointLineAndEllipse, crossingPointLineAndRect} from "./Dimension";
 
 
 export function drawOperationConnection(drawer, ctx, vm) {
     let color = '#ff0000';
     if (vm.type === 'operation' || vm.type === 'container_operation') {
         drawer.viewModels.forEach((tgt) => {
-            if ( (tgt.type === 'container_operation' || tgt.type === 'operation' ) && vm.model.model.connections) {
+            if ( (tgt.type === 'container_operation' || tgt.type === 'operation' || tgt.type === 'topic') && vm.model.model.connections) {
                 vm.model.model.connections.output.forEach((c)=>{
                     if ((tgt.type === 'operation' && c.input.info.instanceName === tgt.model.model.instanceName) ||
+                        (tgt.type === 'topic' && c.input.info.instanceName === tgt.model.model.instanceName) ||
                         (tgt.type === 'container_operation' && c.input.info.instanceName === tgt.model.model.ownerContainerInstanceName + ':' + tgt.model.model.instanceName)) {
                         drawLine(ctx, vm.position, tgt.position, color);
                         let line = {
@@ -24,10 +25,18 @@ export function drawOperationConnection(drawer, ctx, vm) {
                             }
                         );
 
-                        let point = crossingPointLineAndEllipse(line, {
-                            width: tgt.size.width,
-                            height: tgt.size.height
-                        }, 8);
+                        let point;
+                        if (tgt.type === 'topic') {
+                            point = crossingPointLineAndRect(line, {
+                                width: tgt.size.width,
+                                height: tgt.size.height
+                            }, 8);
+                        }else {
+                            point = crossingPointLineAndEllipse(line, {
+                                width: tgt.size.width,
+                                height: tgt.size.height
+                            }, 8);
+                        }
 
 
                         let dx = line.x0 - line.x1;
@@ -190,3 +199,65 @@ export function drawContainerConnection(drawer, ctx, vm) {
 }
 
 
+
+export function drawTopicConnection(drawer, ctx, vm) {
+    let color = '#ff0fff';
+    if (vm.type === 'topic') {
+        drawer.viewModels.forEach((tgt) => {
+            if ( (tgt.type === 'container_operation' || tgt.type === 'operation' ) && vm.model.model.connections) {
+                // Topicの出力からOperationに対して線を引く
+                vm.model.model.connections.output.forEach((c)=>{
+                    if ((tgt.type === 'operation' && c.input.info.instanceName === tgt.model.model.instanceName) ||
+                        (tgt.type === 'container_operation' && c.input.info.instanceName === tgt.model.model.ownerContainerInstanceName + ':' + tgt.model.model.instanceName)) {
+                        drawLine(ctx, vm.position, tgt.position, color);
+                        let line = {
+                            x0: vm.position.x, y0: vm.position.y,
+                            x1: tgt.position.x, y1: tgt.position.y
+                        };
+                        /// 描画したConnectionを保存しておく．
+                        drawer.operationConnections.push(
+                            {
+                                type: "operation_connection",
+                                line: line,
+                                connection: c
+                            }
+                        );
+
+                        let point = crossingPointLineAndEllipse(line, {
+                            width: tgt.size.width,
+                            height: tgt.size.height
+                        }, 8);
+
+
+                        let dx = line.x0 - line.x1;
+                        let dy = -(line.y0 - line.y1) ;
+                        let theta = Math.atan2(dy, dx);
+
+                        let points = [
+                            {x: -10, y: 0},
+                            {x: 7, y: 6},
+                            {x: 7, y: -6}
+                        ];
+
+                        let newPoints = points.map(
+                            (p) => {
+                                return translate(rotate(p, -theta), point);
+                            }
+                        )
+                        drawPolygon(ctx, newPoints, color);
+
+
+                        if (c.type === 'event') {
+                            let p = translate(rotate({x:20, y:20}, -theta), point);
+                            drawText(ctx, 'e', p, color);
+                        }
+
+                        let p = translate(rotate({x:20, y:-20}, -theta), point);
+                        drawText(ctx, c.input.target.name, p, color);
+
+                    }
+                });
+            }
+        });
+    }
+}

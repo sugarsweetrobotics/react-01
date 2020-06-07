@@ -6,6 +6,7 @@ import ConnectionSidePanel from "./ConnectionSidePanel";
 import ECSidePanel from "./ECSidePanel";
 import BrokerSidePanel from "./BrokerSidePanel";
 import CallbackSidePanel from "./CallbackSidePanel";
+import TopicSidePanel from "./ToipicSidePanel";
 
 export default class ProcessSidePanel extends React.Component {
 
@@ -21,6 +22,7 @@ export default class ProcessSidePanel extends React.Component {
             connectionIsActive: false,
             callbackIsActive: false,
             ecIsActive: false,
+            topicIsActive: false,
             brokerIsActive: false,
             info: {instanceName: ''},
         };
@@ -56,6 +58,13 @@ export default class ProcessSidePanel extends React.Component {
         });
     }
 
+    topicPanels() {
+        let process = this.state.controller.getProcesses()[this.props.processIndex];
+        return process.props.topics.map((c, i) => {
+            return (<TopicSidePanel process={process} topic={c} key={i}/>);
+        });
+    }
+
     brokerPanels() {
         let process = this.state.controller.getProcesses()[this.props.processIndex];
         // console.log(process.props.brokers);
@@ -80,6 +89,7 @@ export default class ProcessSidePanel extends React.Component {
         let callbackIsActive = this.state.callbackIsActive;
         let ecIsActive = this.state.ecIsActive;
         let brokerIsActive = this.state.brokerIsActive;
+        let topicIsActive = this.state.topicIsActive;
 
         let process = this.state.controller.getProcesses()[this.props.processIndex];
         let url = process.url();
@@ -124,6 +134,20 @@ export default class ProcessSidePanel extends React.Component {
                         </Accordion.Content>
                     </Accordion>
 
+                    {/* Topics */}
+                    <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
+                        <Accordion.Title index={3}
+                                         active={topicIsActive}
+                                         onClick={()=>{this.setState({topicIsActive: !this.state.topicIsActive})}}
+                                         style={{padding: 0, marginBottom: 0}}
+                        >
+                            <Icon name="dropdown"></Icon>
+                            {"Topics"}
+                        </Accordion.Title>
+                        <Accordion.Content  style={{padding: 0, marginTop: 0}} active={topicIsActive}>
+                            {this.topicPanels()}
+                        </Accordion.Content>
+                    </Accordion>
 
 
                     {/* ECs */}

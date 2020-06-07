@@ -46,9 +46,11 @@ export default class ModelController {
             promises.push(updateProps(p));
             this.pushProcess(p);
         });
-        Promise.all(promises).then(() => {
-            console.log('all promised');
+        return Promise.all(promises).then((ret) => {
+            console.log('ModelController.update() done:', ret);
             this.on_update_func.forEach((func) => { func(this); });
+            console.log('ModelController task: onUpdate callback done.')
+            return ret;
         });
     }
 
@@ -69,12 +71,14 @@ export default class ModelController {
         })
     }
 
-    invokeOperation(processUrl, op) {
+    async invokeOperation(processUrl, op) {
         // console.log('ModelController.invokeOperation:', processUrl, op);
-        return invokeOperation(processUrl, op).then((info) => {
-            // console.log('OperationInvoked:', info);
-            this.update();
+        return await invokeOperation(processUrl, op).then((info) => {
+            console.log('nerikiri.invokeOperation done:', info);
+            //return this.update();
             return info;
+        }).catch((error) => {
+            console.log('nerikiri.invokeOperation failed:', error);
         })
     }
 

@@ -4,7 +4,7 @@ import {
     drawCallbackBindConnection,
     drawContainerConnection,
     drawECBindConnection,
-    drawOperationConnection
+    drawOperationConnection, drawTopicConnection
 } from "./RelationDraw";
 import {includes, distanceToLine, distance} from "./Dimension";
 import {menuParameter} from "./MenuParameter";
@@ -22,6 +22,13 @@ export let ViewModel = (m, pos) => {
     if (m.type === 'container') {
         return {
             type: 'container',
+            position: pos,
+            size: {width: 150, height: 70},
+            model: m
+        }
+    } else if (m.type === 'topic') {
+        return {
+            type: 'topic',
             position: pos,
             size: {width: 150, height: 70},
             model: m
@@ -95,7 +102,7 @@ let menuOfSelectedVM = (vm) => {
 
 export class CanvasDraw {
 
-    constructor(controller) {
+    constructor(controller, updateCanvasFunc) {
         this.controller = controller;
         //this.models = [];
         this.viewModels = [];
@@ -115,6 +122,8 @@ export class CanvasDraw {
         this.controller.setOnUpdateModel((ctrlor) => {
             this.validate();
         })
+
+        this.updateCanvas = ()=>updateCanvasFunc()
     }
 
     removeModel(model) {
@@ -159,6 +168,8 @@ export class CanvasDraw {
                 } else if (model.type === 'ec' && m.model.instanceName === model.model.instanceName) {
                     return this;
                 } else if (model.type === 'callback' && m.model.name === model.model.name) {
+                    return this;
+                } else if (model.type === "topic" && m.model.instanceName === model.model.instanceName) {
                     return this;
                 }
             }
@@ -348,6 +359,10 @@ export class CanvasDraw {
                 } else if (includes(menuParameter.operationControlButtonState.executeButton, point)) {
                     //console.log('Execute');
                     this.onExecuteOperation(menuParameter.operationControlButtonState.invokeButton.viewModel.model);
+                    return true;
+                } else if (includes(menuParameter.operationControlButtonState.cyclicButton, point)) {
+                    //console.log('Execute');
+                    this.onCyclicOperation(menuParameter.operationControlButtonState.invokeButton.viewModel.model);
                     return true;
                 }
             }
@@ -600,9 +615,36 @@ export class CanvasDraw {
         let processUrl = vm.processUrl;
         return this.controller.invokeOperation(processUrl, vm.model).then((info) => {
             menuParameter.operationControlButtonState.outputLog = info;
+            console.log("onInvokeOperation: done.");
             this.validate();
-            //this.controller.update();
+            console.log("onInvokeOperation: validated");
+            //this.controller.update();]
+            console.log('updateCanvas/....');
+            this.updateCanvas();
+            return info;
+        }).catch((error) => {
+            console.log('onInvokeOperation: error.', error);
         });
+    }
+
+    onCyclicOperation(vm) {
+        console.log('onCyclicOperation:', vm);
+        let processUrl = vm.processUrl;
+        let handler = () => {
+            return this.controller.invokeOperation(processUrl, vm.model).then((info) => {
+                if (!menuParameter.operationControlButtonState) return info;
+
+                menuParameter.operationControlButtonState.outputLog = info;
+                this.updateCanvas();
+                /*menuParameter.operationControlButtonState.outputLog.timer.*/
+                setTimeout(handler, 100);
+                return info;
+            }).catch((error) => {
+                console.log('onCyclicOperation: error.', error);
+            });
+        };/*
+        menuParameter.operationControlButtonState.outputLog.timer = */
+        setTimeout(handler, 100);
     }
 
     onExecuteOperation(vm) {
@@ -682,6 +724,7 @@ export class CanvasDraw {
         this.viewModels.forEach((vm) => {
             drawContainerConnection(this, ctx, vm);
             drawOperationConnection(this, ctx, vm);
+            drawTopicConnection(this, ctx, vm);
         });
 
         this.viewModels.forEach((vm) => {

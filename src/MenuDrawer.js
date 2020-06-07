@@ -25,6 +25,9 @@ export function drawSelectedVMBackground(ctx, vm) {
     } else if (vm.type === 'callback') {
         color = '#ffffff';
         drawEllipseShadow(ctx, vm.position, vm.size, color);
+    } else if (vm.type === 'topic') {
+        color = '#ff0fff';
+        drawRectShadow(ctx, vm.position, vm.size, color);
     }
 }
 
@@ -153,6 +156,8 @@ function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgre
         color = '#00ff29';
     } else if (vm.type === 'callback') {
         color = '#ffffff';
+    } else if (vm.type === 'topic') {
+        color = '#ff0fff';
     }
 
     {
@@ -242,6 +247,7 @@ function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgre
             else if (vm.type === 'container_operation') title = 'Container Operation';
             else if (vm.type === 'container') title = 'Container';
             else if (vm.type === 'callback') title = 'Callback';
+            else if (vm.type === 'topic') title = 'Topic';
             drawText(ctx, title, {
                 x: rd * c + vm.position.x + 40,
                 y: rd * s + vm.position.y - 30
@@ -1034,12 +1040,21 @@ function drawOperationControlMenu(drawer, ctx, vm, radius, color, progress, menu
             if (menuProgress > 100) menuProgress = 100;
             anchor.y += 20;
             if (menuProgress > 0) {
+                // Invoke
                 drawRect(ctx, {
                     x: vm.position.x - 45, y: anchor.y + 25 + vm.position.y
                 }, {
                     width: 80, height: 50 * menuProgress / 100
                 }, color);
 
+                // Cyclic Invoke
+                drawRect(ctx, {
+                    x: vm.position.x - 45, y: anchor.y + 25 + vm.position.y + 60
+                }, {
+                    width: 80, height: 50 * menuProgress / 100
+                }, color);
+
+                // Execute
                 drawRect(ctx, {
                     x: vm.position.x - 45 + 90, y: anchor.y + 25 + vm.position.y
                 }, {
@@ -1054,7 +1069,8 @@ function drawOperationControlMenu(drawer, ctx, vm, radius, color, progress, menu
                         size: {
                             width: 80, height: 50 * menuProgress / 100
                         },
-                        viewModel: vm
+                        viewModel: vm,
+                        name: 'Invoke'
                     };
                     menuParameter.operationControlButtonState.executeButton = {
                         position: {
@@ -1063,11 +1079,25 @@ function drawOperationControlMenu(drawer, ctx, vm, radius, color, progress, menu
                         size: {
                             width: 80, height: 50 * menuProgress / 100
                         },
-                        viewModel: vm
+                        viewModel: vm,
+                        name: 'Execute'
+                    };
+                    menuParameter.operationControlButtonState.cyclicButton = {
+                        position: {
+                            x: vm.position.x - 45, y: anchor.y + 25 + vm.position.y + 60
+                        },
+                        size: {
+                            width: 80, height: 50 * menuProgress / 100
+                        },
+                        viewModel: vm,
+                        name: 'Cyclic'
                     };
 
                     drawText(ctx, 'Invoke', {
                         x: vm.position.x - 45, y: anchor.y + 25 + vm.position.y
+                    }, color);
+                    drawText(ctx, 'Cyclic', {
+                        x: vm.position.x - 45, y: anchor.y + 25 + vm.position.y + 60
                     }, color);
                     drawText(ctx, 'Execute', {
                         x: vm.position.x - 45 + 90, y: anchor.y + 25 + vm.position.y
@@ -1115,25 +1145,79 @@ function drawOperationControlMenu(drawer, ctx, vm, radius, color, progress, menu
                     });
 
                     if (menuParameter.operationControlButtonState.outputLog) {
-                        let outputLog = menuParameter.operationControlButtonState.outputLog;
-                        let replacer = (key, value) => {
-                            if (value instanceof Array) {
-                                return "Array[" + value.toString() + "]";
+                        if (menuParameter.operationControlButtonState.outputLog.__TYPE__ === '__IMAGE__') {
+                            if (!menuParameter.operationControlButtonState.outputLog.__rawImage__) {
+                                menuParameter.operationControlButtonState.outputLog.__rawImage__
+                                 = atob(menuParameter.operationControlButtonState.outputLog.data.__byte64__);
                             }
-                            return value;
-                        }
-                        let text = JSON.stringify(outputLog, replacer, 2);
-                        let ts = text.split('\n');
-                        ts.forEach((t, i) => {
-                            drawText(ctx, t, {
+
+                            let thumbnailWidth = 200;
+                            let size = {width: menuParameter.operationControlButtonState.outputLog.cols, height: menuParameter.operationControlButtonState.outputLog.rows};
+                            let scale = thumbnailWidth / menuParameter.operationControlButtonState.outputLog.cols;
+                            if (!menuParameter.operationControlButtonState.outputLog.__newCanvas__) {
+                                let newCanvas = document.createElement("canvas");
+                                newCanvas.setAttribute('width', size.width.toString());
+                                newCanvas.setAttribute('height', size.height.toString());
+                                newCanvas.width = size.width;
+                                newCanvas.height = size.height;
+
+                                let imageData = ctx.getImageData(0, 0, size.width, size.height);
+                                let data = imageData.data;
+
+                                let k = 0;
+                                for(let i = 0;i < data.length;i += 4) {
+                                    data[i] = menuParameter.operationControlButtonState.outputLog.__rawImage__.charCodeAt(k+2);
+                                    data[i+1] = menuParameter.operationControlButtonState.outputLog.__rawImage__.charCodeAt(k+1);
+                                    data[i+2] = menuParameter.operationControlButtonState.outputLog.__rawImage__.charCodeAt(k+0);
+                                    k += 3;
+                                }
+                                newCanvas.getContext('2d').putImageData(imageData, 0, 0);
+                                menuParameter.operationControlButtonState.outputLog.__newCanvas__ = newCanvas;
+                            }
+
+                            //console.log('Image size:', menuParameter.operationControlButtonState.outputLog.__rawImage__.length);
+                            //console.log(menuParameter.operationControlButtonState.outputLog.__rawImage__);
+                            drawText(ctx, 'IMAGE', {
                                 x: vm.position.x + rd * c + 20,
-                                y: vm.position.y + rd * s + 30 + 30 * i
+                                y: vm.position.y + rd * s + 30 + 30 * 0
                             }, color, {
                                 align: 'left'
                             });
 
-                        })
+                            ctx.scale(scale, scale);
+                            ctx.drawImage(menuParameter.operationControlButtonState.outputLog.__newCanvas__, vm.position.x / scale + (rd * c + 20) / scale, vm.position.y/scale  + (rd * s + 30 + 30)/scale);
+                            ctx.scale(1/scale, 1/scale);
+                        } else {
+                            //let outputLog = menuParameter.operationControlButtonState.outputLog;
+                            let replacer = (key, value) => {
+                                if (value instanceof Array) {
+                                    if (value.length > 50) {
+                                        return "Long Array";
+                                    }
+                                    return "Array[" + value.toString() + "]";
+                                }
+                                if (typeof (value) === "string") {
+                                    if (value.length > 50) {
+                                        return "Long String...";
+                                    }
+                                    return value;
+                                }
+                                return value;
+                            }
+                            //console.log('Stringifying....');
+                            let text = JSON.stringify(menuParameter.operationControlButtonState.outputLog, replacer, 2);
+                            //console.log('Stringfied');
+                            let ts = text.split('\n');
+                            ts.forEach((t, i) => {
+                                drawText(ctx, t, {
+                                    x: vm.position.x + rd * c + 20,
+                                    y: vm.position.y + rd * s + 30 + 30 * i
+                                }, color, {
+                                    align: 'left'
+                                });
 
+                            })
+                        }
                     } else {
                         drawText(ctx, 'Select Control Menu Button', {
                             x: vm.position.x + rd * c + 20,
