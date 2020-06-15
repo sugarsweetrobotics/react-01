@@ -35,6 +35,21 @@ export default class SystemCanvas extends React.Component {
         this.canvas.addEventListener('mouseleave', (e) => {
             this.setState({model: this.state.model.onMouseLeave(e)});
         });
+        this.canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.setState({model: this.state.model.onMouseDown(e)});
+        });
+
+        this.canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.setState({model: this.state.model.onMouseUp(e)});
+        });
+        this.canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            this.setState({model: this.state.model.onMouseMove(e, (model) => {
+                this.setState({model: model});
+            })});
+        });
     }
 
 

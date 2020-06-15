@@ -17,6 +17,7 @@ import {
 import process, {connect, urlToAddr, urlToPort} from "./nerikiri";
 
 import {drawLine, drawArc, drawText} from "./Drawing";
+import {drawLeftSideMenu} from "./SideMenuDrawer";
 
 export let ViewModel = (m, pos) => {
     if (m.type === 'container') {
@@ -118,6 +119,8 @@ export class CanvasDraw {
         this.menuState = null;
         this.selectedObjectIsRemoving = false;
         this.scrolling = false;
+        this.leftSideMenuButtons = [];
+        this.leftSideMenuRotateAngle = 0.0;
 
         this.controller.setOnUpdateModel((ctrlor) => {
             this.validate();
@@ -184,7 +187,6 @@ export class CanvasDraw {
             }, {x: point.x - 70, y: point.y});
         }
 
-
         //this.models.push(model);
         this.viewModels.push(ViewModel(model, point));
 
@@ -198,7 +200,6 @@ export class CanvasDraw {
                     model: operation,
                     ownerContainer: model.model
                 };
-
 
                 this.addModel(data, {x: point.x + 70, y: point.y + 70 * i});
             });
@@ -217,9 +218,23 @@ export class CanvasDraw {
 
 
     clientPosition(e) {
-        let target_rect = e.currentTarget.getBoundingClientRect();
-        return {x: e.clientX - target_rect.left - this.canvasOffset.x,
-        y: e.clientY - target_rect.top - this.canvasOffset.y};
+        // console.log('clientPosition:', e.clientX, e);
+        if (e.clientX) {
+            let target_rect = e.currentTarget.getBoundingClientRect();
+            return {
+                x: e.clientX - target_rect.left - this.canvasOffset.x,
+                y: e.clientY - target_rect.top - this.canvasOffset.y
+            };
+        } else {
+            /// Touchのとき
+            let target_rect = e.target.getBoundingClientRect();
+            // console.log('target_rect:', target_rect);
+            return {
+                x: e.clientX - target_rect.left - this.canvasOffset.x,
+                y: e.clientY - target_rect.top - this.canvasOffset.y
+            };
+        }
+
     }
 
 
@@ -232,6 +247,17 @@ export class CanvasDraw {
     }
 
     onMouseMove(e, cb) {
+        //console.log('onMouseMove(', e, ')');
+        // 左サイドメニューでクリックがあった場合
+        if (this.leftSideMenuClicked && this.pickedPoint) {
+            let cp = this.clientPosition(e);
+            //this.selectedViewModel.position.x += cp.x - this.pickedPoint.x;
+            this.leftSideMenuRotateAngle += (cp.y - this.pickedPoint.y) * 0.01;
+            this.pickedPoint = cp;
+            cb(this);
+            return this;
+        }
+
         // オブジェクト上でマウスダウンがあった場合
         // ドラッグ状態の処理
         if (this.selectedViewModel != null && this.pickedPoint != null && !this.scrolling) {
@@ -255,6 +281,7 @@ export class CanvasDraw {
         /// キャンバス場でマウスダウンがあった場合
         if ((this.selectedViewModel === null && this.pickedPoint != null)|| this.scrolling) {
             let cp = this.clientPosition(e);
+            //console.log('clickedPoint:', cp);
             this.canvasOffset.x += cp.x - this.pickedPoint.x;
             this.canvasOffset.y += cp.y - this.pickedPoint.y;
             if (this.canvasOffset.x > 4000) this.canvasOffset.x = 4000;
@@ -523,6 +550,23 @@ export class CanvasDraw {
             this.pickedPoint = cp;
             return this;
         }
+
+        // もし左サイドメニューが表示されていたら
+        if (this.leftSideMenu) {
+            let center = this.leftSideMenuCenter;
+            let d = distance(center, cp);
+            // console.log('leftSide:', center, cp, d);
+            if (d < 150) {
+                this.leftSideMenuClicked = true;
+                this.pickedPoint = cp;
+                this.selectedConnection = null;
+                this.selectedViewModel = null;
+                return this;
+            } else {
+                this.leftSideMenuClicked = false;
+            }
+        }
+
         // メニューが表示されてたらボタンチェックするよ
         if (this.menuProgressed >= 100) {
             if (this.checkMenuButtonClicked(cp)) {
@@ -551,10 +595,35 @@ export class CanvasDraw {
         }
 
         this.pickedPoint = cp;
+
+
         return this;
     }
 
     onMouseUp(e) {
+        if (this.leftSideMenuClicked && this.pickedPoint) {
+            let cp = this.clientPosition(e);
+
+            let center = this.leftSideMenuCenter;
+            let d = distance(center, cp);
+            console.log('leftSide:', center, cp, d);
+
+            this.leftSideMenuButtons.forEach((btn)=> {
+                if (btn.innerR < d && btn.outerR > d) {
+                    let dx = center.x - cp.x;
+                    let dy = center.y - cp.y;
+                    let th = Math.atan2(-dy, -dx);
+                    if (th < btn.angleMax && th > btn.angleMin) {
+                        console.log("btn:", btn.name);
+                        btn.clicked = true;
+                    } else {
+                        btn.clicked = false;
+                    }
+                }
+            });
+            return this;
+        }
+
         if (this.selectedObjectIsRemoving) {
             this.removeModel(this.selectedViewModel.model);
             this.selectedViewModel = null;
@@ -562,6 +631,7 @@ export class CanvasDraw {
         this.pickedPoint = this.clientPosition(e);
         this.selectedObjectIsRemoving = false;
         this.scrolling = false;
+        this.leftSideMenuClicked = false;
 
         return this;
     }
@@ -743,6 +813,17 @@ export class CanvasDraw {
         if (!this.selectedObjectIsRemoving) {
             drawSelectedVMMenu(this, ctx, this.selectedViewModel);
             drawSelectedRelationMenu(this, ctx, this.selectedConnection);
+        }
+
+        if (!this.selectedViewModel) {
+            this.leftSideMenu = true;
+            this.leftSideMenuCenter = {
+                x: -this.canvasOffset.x,
+                y: -this.canvasOffset.y + ctx.canvas.clientHeight / 2
+            };
+            drawLeftSideMenu(this, ctx);
+        } else {
+            this.leftSideMenu = false;
         }
 
         ctx.scale(1.0, 1.0);

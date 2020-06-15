@@ -20,6 +20,12 @@ export default class App extends React.Component {
             sidebar_visible: false,
             controller: new ModelController()
         };
+
+        let url = window.location.href;//"http://localhost:3000/";
+
+        this.state.controller.loadProcess(url, (_)=>{
+            this.setState({controller: this.state.controller});
+        })
     }
 
     onMenuIconClicked(e) {

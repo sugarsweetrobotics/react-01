@@ -13,9 +13,12 @@ export default class ModelController {
         this.on_update_func.push(func);
     }
 
-    loadProcess(url) {
+    loadProcess(url, cb) {
         let p = process(url);
-        updateProps(p);
+        let promise = updateProps(p);
+        if (cb) {
+            promise.then(cb);
+        }
         this.pushProcess(p);
         return this;
     }

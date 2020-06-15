@@ -22,8 +22,11 @@ export default class Sidemenu extends React.Component {
     }
 
     onAddButtonClicked(e) {
-        let url = "http://localhost:3000/";
+        /*
+        let url = window.location.href;//"http://localhost:3000/";
         this.setState({controller: this.state.controller.loadProcess(url)});
+
+         */
     }
 
     processPanel() {

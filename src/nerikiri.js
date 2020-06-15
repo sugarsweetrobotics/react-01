@@ -49,28 +49,28 @@ export default function process(url) {
 
 
         info: async () => {
-            let f = await fetch(url + '/process/info/', {method: 'GET', mode: 'cors'});
+            let f = await fetch(url + 'process/info/', {method: 'GET', mode: 'cors'});
             return f.json();
         },
 
         operationInfos: async() => {
-            let f = await fetch(url + '/process/operations/', {method: 'GET', mode: 'cors'});
+            let f = await fetch(url + 'process/operations/', {method: 'GET', mode: 'cors'});
             return f.json();
         },
 
         containerInfos: async() => {
-            let f = await fetch(url + '/process/containers/', {method: 'GET', mode: 'cors'});
+            let f = await fetch(url + 'process/containers/', {method: 'GET', mode: 'cors'});
             return f.json();
         },
 
         containerOperationInfos: async(containerInfo) => {
-            let f = await fetch(url + '/process/containers/' + containerInfo.instanceName + '/operations/', {method: 'GET', mode: 'cors'});
+            let f = await fetch(url + 'process/containers/' + containerInfo.instanceName + '/operations/', {method: 'GET', mode: 'cors'});
             return f.json();
         },
 
         connectionInfos: async(operationInfo) => {
             if (typeof(operationInfo) === 'undefined') {
-                let f = await fetch(url + '/process/connections/', {
+                let f = await fetch(url + 'process/connections/', {
                     method: 'GET',
                     mode: 'cors'
                 });
@@ -79,7 +79,7 @@ export default function process(url) {
 
             //console.log(operationInfo);
             if (operationInfo.ownerContainerInstanceName === undefined) {
-                let f = await fetch(url + '/process/operations/' + operationInfo.instanceName + '/connections/', {
+                let f = await fetch(url + 'process/operations/' + operationInfo.instanceName + '/connections/', {
                     method: 'GET',
                     mode: 'cors'
                 });
@@ -87,7 +87,7 @@ export default function process(url) {
 
                 return v;
             } else {
-                let f = await fetch(url + '/process/containers/' + operationInfo.ownerContainerInstanceName + '/operations/' + operationInfo.instanceName + '/connections/', {
+                let f = await fetch(url + 'process/containers/' + operationInfo.ownerContainerInstanceName + '/operations/' + operationInfo.instanceName + '/connections/', {
                     method: 'GET',
                     mode: 'cors'
                 });
@@ -101,7 +101,7 @@ export default function process(url) {
                 return {}
             }
 
-            let f = await fetch(url + '/process/topics/' + topicInfo.instanceName + '/connections/', {
+            let f = await fetch(url + 'process/topics/' + topicInfo.instanceName + '/connections/', {
                 method: 'GET',
                 mode: 'cors'
             });
@@ -112,14 +112,14 @@ export default function process(url) {
         ecInfos: async(ecInfo) => {
 
             if (ecInfo === undefined) {
-                let f = await fetch(url + '/process/ecs/', {
+                let f = await fetch(url + 'process/ecs/', {
                     method: 'GET',
                     mode: 'cors'
                 });
                 return f.json();
             }
 
-            let f = await fetch(url + '/process/ecs/' + ecInfo.instanceName + "/", {
+            let f = await fetch(url + 'process/ecs/' + ecInfo.instanceName + "/", {
                 method: 'GET',
                 mode: 'cors'
             });
@@ -128,7 +128,7 @@ export default function process(url) {
         },
 
         brokerInfos: async() => {
-            let f = await fetch(url + "/process/brokers/", {
+            let f = await fetch(url + "process/brokers/", {
                 method: 'GET',
                 mode: 'cors'
             });
@@ -136,7 +136,7 @@ export default function process(url) {
         },
 
         topicInfos: async() => {
-            let f = await fetch(url + "/process/topics/", {
+            let f = await fetch(url + "process/topics/", {
                 method: 'GET',
                 mode: 'cors'
             });
@@ -144,7 +144,7 @@ export default function process(url) {
         },
 
         boundOperationInfos: async(ecInfo) => {
-            let f = await fetch(url + '/process/ecs/' + ecInfo.instanceName + "/operations/", {
+            let f = await fetch(url + 'process/ecs/' + ecInfo.instanceName + "/operations/", {
                 method: 'GET',
                 mode: 'cors'
             });
@@ -152,7 +152,7 @@ export default function process(url) {
         },
 
         callbackInfo: async(info) => {
-            let f = await fetch( url + '/process/callbacks/', {
+            let f = await fetch( url + 'process/callbacks/', {
                 method: 'GET',
                 mode: 'cors'
             });
@@ -237,7 +237,7 @@ export async function deleteConnection(proc, connection) {
         let url = proc;
         let operationName = connection.output.info.instanceName;
         let connectionName = connection.name;
-        let f = await fetch(url + '/process/operations/' + operationName + "/output/connections/" + connectionName + '/', {
+        let f = await fetch(url + 'process/operations/' + operationName + "/output/connections/" + connectionName + '/', {
             method: 'DELETE',
             mode: 'cors'
         });
@@ -249,7 +249,7 @@ export async function connect(proc, connectionInfo) {
     if (proc) {
         let url = proc.url();
         let operationName = connectionInfo.output.info.instanceName;
-        let f = await fetch(url + '/process/operations/' + operationName + "/output/connections/", {
+        let f = await fetch(url + 'process/operations/' + operationName + "/output/connections/", {
             method: 'POST',
             mode: 'cors',
             body: JSON.stringify(connectionInfo)
@@ -260,7 +260,7 @@ export async function connect(proc, connectionInfo) {
 
 export async function changeECState(procUrl, ec, state) {
     if (procUrl) {
-        let f = await fetch( procUrl + '/process/ecs/' + ec.instanceName + '/state/', {
+        let f = await fetch( procUrl + 'process/ecs/' + ec.instanceName + '/state/', {
             method: 'POST',
             mode: 'cors',
             body: '"' + state + '"',
@@ -275,7 +275,7 @@ export async function invokeOperation(procUrl, op) {
         if (op.ownerContainerInstanceName) {
             instanceName = op.ownerContainerInstanceName + ':' + instanceName;
         }
-        let f = await fetch( procUrl + '/process/operations/' + instanceName + '/', {
+        let f = await fetch( procUrl + 'process/operations/' + instanceName + '/', {
             method: 'GET',
             mode: 'cors',
         });
@@ -289,7 +289,7 @@ export async function executeOperation(procUrl, op) {
         if (op.ownerContainerInstanceName) {
             instanceName = op.ownerContainerInstanceName + ':' + instanceName;
         }
-        let f = await fetch( procUrl + '/process/operations/' + instanceName + '/execution/', {
+        let f = await fetch( procUrl + 'process/operations/' + instanceName + '/execution/', {
             method: 'PUT',
             mode: 'cors',
             body: '{}'
@@ -304,7 +304,7 @@ export async function bindOperation(procUrl, ec, op) {
     if (op.ownerContainerInstanceName) {
         instanceName = op.ownerContainerInstanceName + ':' + instanceName;
     }
-    let f = await fetch( procUrl + '/process/ecs/' + ec.instanceName + '/operations/', {
+    let f = await fetch( procUrl + 'process/ecs/' + ec.instanceName + '/operations/', {
         method: 'POST',
         mode: 'cors',
         body: JSON.stringify(op)
@@ -318,7 +318,7 @@ export async function unbindOperation(procUrl, ec, op) {
     if (op.ownerContainerInstanceName) {
         instanceName = op.ownerContainerInstanceName + ':' + instanceName;
     }
-    let f = await fetch( procUrl + '/process/ecs/' + ec.instanceName + '/operations/' + instanceName + '/', {
+    let f = await fetch( procUrl + 'process/ecs/' + ec.instanceName + '/operations/' + instanceName + '/', {
         method: 'DELETE',
         mode: 'cors'
     });

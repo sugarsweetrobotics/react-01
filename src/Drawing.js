@@ -194,11 +194,10 @@ export function drawEllipse(ctx, position, size, color, option) {
             endAngle: Math.PI * 2
         };
     }
-
     if (option.startAngle !== undefined &&  option.endAngle !== undefined && option.startAngle >= option.endAngle) return;
 
     ctx.fillStyle = "black";
-    ctx.lineWidth = option.lineWidth !== undefined ? option.lineWidth : 6.0;
+    ctx.lineWidth = option.lineWidth ? option.lineWidth : 6.0;
     ctx.strokeStyle = 'white';
     ctx.beginPath();
     ctx.ellipse(position.x, position.y, size.width/2, size.height/2, 0, option.startAngle !== undefined ? option.startAngle : 0, option.endAngle !== undefined ? option.endAngle : Math.PI*2);
