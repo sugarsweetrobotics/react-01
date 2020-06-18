@@ -614,7 +614,7 @@ export class CanvasDraw {
                     let dy = center.y - cp.y;
                     let th = Math.atan2(-dy, -dx);
                     if (th < btn.angleMax && th > btn.angleMin) {
-                        console.log("btn:", btn.name);
+                        //console.log("btn:", btn.name);
                         btn.clicked = true;
                     } else {
                         btn.clicked = false;

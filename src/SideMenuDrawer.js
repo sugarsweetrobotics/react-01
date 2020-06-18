@@ -28,6 +28,7 @@ export function drawLeftSideMenu(drawer, ctx) {
     }, color, option)
 
     let nMenu = 6;
+    let leftSideMenuButtons_ = [];
 
     let drawIcon = (text, angle) => {
         drawPi(ctx, center, 140, -Math.PI/ nMenu + rotateAngle + angle + 0.05, Math.PI/ nMenu + rotateAngle + angle - 0.05, color, {
@@ -51,15 +52,16 @@ export function drawLeftSideMenu(drawer, ctx) {
         drawer.leftSideMenuButtons.forEach( (btn) => {
             if (btn.name === text) {
                 if (btn.clicked) {
-                    console.log(drawer.controller.processes[0].props);
+                    ///console.log(drawer.controller.processes[0].props);
                     if (btn.name === "ECs") {
-                        console.log(drawer.controller.processes[0].props.ecs);
+                        console.log('ECs');
+                       console.log(drawer.controller.processes[0].props.ecs);
                     }
                 }
             }
         });
 
-        drawer.leftSideMenuButtons.push({
+        leftSideMenuButtons_.push({
             angleMin: -Math.PI/ nMenu + rotateAngle + angle + 0.05,
             angleMax: Math.PI/ nMenu + rotateAngle + angle - 0.05,
             innerR: 60,
@@ -67,13 +69,13 @@ export function drawLeftSideMenu(drawer, ctx) {
             name: text
         })
     }
-    //drawer.leftSideMenuButtons = [];
+
     drawIcon('Processes', -3*Math.PI/nMenu*2);
     drawIcon('Operations', -2*Math.PI/nMenu*2);
     drawIcon('Containers', -Math.PI/nMenu*2);
     drawIcon('Topics', 0);
     drawIcon('ECs', Math.PI/nMenu*2);
     drawIcon('Callbacks', 2*Math.PI/nMenu*2);
-
+    drawer.leftSideMenuButtons = leftSideMenuButtons_;
 
 }
