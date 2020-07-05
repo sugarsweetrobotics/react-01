@@ -64,7 +64,7 @@ export default function process(url) {
         },
 
         containerOperationInfos: async(containerInfo) => {
-            let f = await fetch(url + 'process/containers/' + containerInfo.instanceName + '/operations/', {method: 'GET', mode: 'cors'});
+            let f = await fetch(url + 'process/containers/' + containerInfo.fullName + '/operations/', {method: 'GET', mode: 'cors'});
             return f.json();
         },
 
@@ -79,7 +79,7 @@ export default function process(url) {
 
             //console.log(operationInfo);
             if (operationInfo.ownerContainerInstanceName === undefined) {
-                let f = await fetch(url + 'process/operations/' + operationInfo.instanceName + '/connections/', {
+                let f = await fetch(url + 'process/operations/' + operationInfo.fullName + '/connections/', {
                     method: 'GET',
                     mode: 'cors'
                 });
@@ -101,7 +101,7 @@ export default function process(url) {
                 return {}
             }
 
-            let f = await fetch(url + 'process/topics/' + topicInfo.instanceName + '/connections/', {
+            let f = await fetch(url + 'process/topics/' + topicInfo.fullName + '/connections/', {
                 method: 'GET',
                 mode: 'cors'
             });
@@ -119,7 +119,7 @@ export default function process(url) {
                 return f.json();
             }
 
-            let f = await fetch(url + 'process/ecs/' + ecInfo.instanceName + "/", {
+            let f = await fetch(url + 'process/ecs/' + ecInfo.fullName + "/", {
                 method: 'GET',
                 mode: 'cors'
             });
@@ -144,7 +144,7 @@ export default function process(url) {
         },
 
         boundOperationInfos: async(ecInfo) => {
-            let f = await fetch(url + 'process/ecs/' + ecInfo.instanceName + "/operations/", {
+            let f = await fetch(url + 'process/ecs/' + ecInfo.fullName + "/operations/", {
                 method: 'GET',
                 mode: 'cors'
             });
@@ -235,7 +235,7 @@ export async function updateProps(proc) {
 export async function deleteConnection(proc, connection) {
     if (proc) {
         let url = proc;
-        let operationName = connection.output.info.instanceName;
+        let operationName = connection.output.info.fullName;
         let connectionName = connection.name;
         let f = await fetch(url + 'process/operations/' + operationName + "/output/connections/" + connectionName + '/', {
             method: 'DELETE',
@@ -248,7 +248,7 @@ export async function deleteConnection(proc, connection) {
 export async function connect(proc, connectionInfo) {
     if (proc) {
         let url = proc.url();
-        let operationName = connectionInfo.output.info.instanceName;
+        let operationName = connectionInfo.output.info.fullName;
         let f = await fetch(url + 'process/operations/' + operationName + "/output/connections/", {
             method: 'POST',
             mode: 'cors',
@@ -260,7 +260,7 @@ export async function connect(proc, connectionInfo) {
 
 export async function changeECState(procUrl, ec, state) {
     if (procUrl) {
-        let f = await fetch( procUrl + 'process/ecs/' + ec.instanceName + '/state/', {
+        let f = await fetch( procUrl + 'process/ecs/' + ec.fullName + '/state/', {
             method: 'POST',
             mode: 'cors',
             body: '"' + state + '"',
@@ -271,11 +271,11 @@ export async function changeECState(procUrl, ec, state) {
 
 export async function invokeOperation(procUrl, op) {
     if (procUrl) {
-        let instanceName = op.instanceName;
-        if (op.ownerContainerInstanceName) {
-            instanceName = op.ownerContainerInstanceName + ':' + instanceName;
-        }
-        let f = await fetch( procUrl + 'process/operations/' + instanceName + '/', {
+        let fullName = op.fullName;
+        // if (op.ownerContainerInstanceName) {
+        //    instanceName = op.ownerContainerInstanceName + ':' + instanceName;
+        //}
+        let f = await fetch( procUrl + 'process/operations/' + fullName + '/', {
             method: 'GET',
             mode: 'cors',
         });
@@ -285,11 +285,11 @@ export async function invokeOperation(procUrl, op) {
 
 export async function executeOperation(procUrl, op) {
     if (procUrl) {
-        let instanceName = op.instanceName;
-        if (op.ownerContainerInstanceName) {
-            instanceName = op.ownerContainerInstanceName + ':' + instanceName;
-        }
-        let f = await fetch( procUrl + 'process/operations/' + instanceName + '/execution/', {
+        let fullName = op.fullName;
+        //if (op.ownerContainerInstanceName) {
+        //    instanceName = op.ownerContainerInstanceName + ':' + instanceName;
+        //}
+        let f = await fetch( procUrl + 'process/operations/' + fullName + '/execution/', {
             method: 'PUT',
             mode: 'cors',
             body: '{}'
@@ -300,11 +300,11 @@ export async function executeOperation(procUrl, op) {
 
 
 export async function bindOperation(procUrl, ec, op) {
-    let instanceName = op.instanceName;
-    if (op.ownerContainerInstanceName) {
-        instanceName = op.ownerContainerInstanceName + ':' + instanceName;
-    }
-    let f = await fetch( procUrl + 'process/ecs/' + ec.instanceName + '/operations/', {
+    let fullName = op.fullName;
+    //if (op.ownerContainerInstanceName) {
+    //    instanceName = op.ownerContainerInstanceName + ':' + instanceName;
+    //}
+    let f = await fetch( procUrl + 'process/ecs/' + ec.fullName + '/operations/', {
         method: 'POST',
         mode: 'cors',
         body: JSON.stringify(op)
@@ -314,11 +314,11 @@ export async function bindOperation(procUrl, ec, op) {
 }
 
 export async function unbindOperation(procUrl, ec, op) {
-    let instanceName = op.instanceName;
-    if (op.ownerContainerInstanceName) {
-        instanceName = op.ownerContainerInstanceName + ':' + instanceName;
-    }
-    let f = await fetch( procUrl + 'process/ecs/' + ec.instanceName + '/operations/' + instanceName + '/', {
+    let fullName = op.fullName;
+    //if (op.ownerContainerInstanceName) {
+    //    instanceName = op.ownerContainerInstanceName + ':' + instanceName;
+    //}
+    let f = await fetch( procUrl + 'process/ecs/' + ec.fullName + '/operations/' + fullName + '/', {
         method: 'DELETE',
         mode: 'cors'
     });

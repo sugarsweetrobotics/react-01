@@ -36,6 +36,7 @@ export default class TopicSidePanel extends React.Component {
         let i = 0;
         console.log(this.props.topic);
         for(let key in this.props.topic.connections.input) {
+            if (key === '__ERROR__') return;
             cons.push(
                 (<div style={{marginLeft: 10}} key={i}>
                     <div>{key}</div>
@@ -57,7 +58,7 @@ export default class TopicSidePanel extends React.Component {
     }
 
     render() {
-        let instanceName = this.state.topic.instanceName;
+        let instanceName = this.state.topic.fullName;
         let titleIsActive = this.state.titleIsActive;
         let connectionIsActive = this.state.connectionIsActive;
         return (

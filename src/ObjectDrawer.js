@@ -25,7 +25,7 @@ export function drawVM(drawer, ctx, vm) {
         drawRect(ctx, vm.position, vm.size, color);
     }
 
-    let text = vm.model.model.instanceName;
+    let text = vm.model.model.instanceName ? vm.model.model.instanceName: vm.model.model.fullName;
     if (vm.type === 'callback') text = vm.model.model.name;
     drawText(ctx, text, {x: vm.position.x, y: vm.position.y + 10}, color);
 }

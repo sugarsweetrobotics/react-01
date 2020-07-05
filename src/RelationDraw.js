@@ -8,9 +8,9 @@ export function drawOperationConnection(drawer, ctx, vm) {
         drawer.viewModels.forEach((tgt) => {
             if ( (tgt.type === 'container_operation' || tgt.type === 'operation' || tgt.type === 'topic') && vm.model.model.connections) {
                 vm.model.model.connections.output.forEach((c)=>{
-                    if ((tgt.type === 'operation' && c.input.info.instanceName === tgt.model.model.instanceName) ||
-                        (tgt.type === 'topic' && c.input.info.instanceName === tgt.model.model.instanceName) ||
-                        (tgt.type === 'container_operation' && c.input.info.instanceName === tgt.model.model.ownerContainerInstanceName + ':' + tgt.model.model.instanceName)) {
+                    if ((tgt.type === 'operation' && c.input.info.fullName === tgt.model.model.fullName) ||
+                        (tgt.type === 'topic' && c.input.info.fullName === tgt.model.model.fullName) ||
+                        (tgt.type === 'container_operation' && c.input.info.fullName === tgt.model.model.fullName)) { // Name + ':' + tgt.model.model.instanceName)) {
                         drawLine(ctx, vm.position, tgt.position, color);
                         let line = {
                             x0: vm.position.x, y0: vm.position.y,
@@ -207,8 +207,8 @@ export function drawTopicConnection(drawer, ctx, vm) {
             if ( (tgt.type === 'container_operation' || tgt.type === 'operation' ) && vm.model.model.connections) {
                 // Topicの出力からOperationに対して線を引く
                 vm.model.model.connections.output.forEach((c)=>{
-                    if ((tgt.type === 'operation' && c.input.info.instanceName === tgt.model.model.instanceName) ||
-                        (tgt.type === 'container_operation' && c.input.info.instanceName === tgt.model.model.ownerContainerInstanceName + ':' + tgt.model.model.instanceName)) {
+                    if ((tgt.type === 'operation' && c.input.info.fullName === tgt.model.model.fullName) ||
+                        (tgt.type === 'container_operation' && c.input.info.fullName === tgt.model.model.fullName)) { // + ':' + tgt.model.model.instanceName)) {
                         drawLine(ctx, vm.position, tgt.position, color);
                         let line = {
                             x0: vm.position.x, y0: vm.position.y,
@@ -246,6 +246,9 @@ export function drawTopicConnection(drawer, ctx, vm) {
                         )
                         drawPolygon(ctx, newPoints, color);
 
+
+                        let p = translate(rotate({x:20, y:-20}, -theta), point);
+                        drawText(ctx, c.input.target.name, p, color);
 
                         //if (c.type === 'event') {
                         //    let p = translate(rotate({x:20, y:20}, -theta), point);

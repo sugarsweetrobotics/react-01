@@ -64,7 +64,7 @@ export default class OperationSidePanel extends React.Component {
     }
 
     render() {
-        let instanceName = this.props.operation.instanceName;
+        let instanceName = this.props.operation.fullName;
 
         if (this.props.useFullName) {
 

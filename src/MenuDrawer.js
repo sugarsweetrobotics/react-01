@@ -207,7 +207,7 @@ function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgre
 
     {
         // インスタンス名を描画
-        let instanceName = vm.model.model.instanceName;
+        let instanceName = vm.model.model.fullName;
         if (vm.type === 'callback') instanceName = vm.model.model.name;
 
         let arrow_progress = progress > 33 ? 100 : progress * 3;
@@ -714,19 +714,19 @@ function drawOperationSpecialMenu(drawer, ctx, vm, radius, color, progress, menu
 
 
                 conTitlePos.y += 40;
-                console.log('Drawing Connections...', vm);
+                //console.log('Drawing Connections...', vm);
                 for (let i = 0; vm.model.model.connections && i < vm.model.model.connections.output.length; ++i) {
                     let con = vm.model.model.connections.output[i];
                     //let w = ctx.measureText(con.name).width;
 
-                    console.log('Con:', con);
-                    let instanceName = con.input.info.instanceName;
+                    //console.log('Con:', con);
+                    let fullName = con.input.info.fullName;
                     drawRect(ctx, {
                         x: vm.position.x + radius + 120 + 140,
                         y: conTitlePos.y - 5
                     }, {width: 280, height: 30}, color);
 
-                    drawText(ctx, instanceName, {
+                    drawText(ctx, fullName, {
                         //x: lineEnd.x - w/2 - 30,
                         x: vm.position.x + radius + 120,
                         y: conTitlePos.y
@@ -800,10 +800,10 @@ function drawOperationSpecialMenu(drawer, ctx, vm, radius, color, progress, menu
                         let posY = conTitlePos.y - 10 + 50;
                         let target_vm = menuParameter.outputButtonState.pushedConnectorButton.pushedTargetButton.viewModel;
                         let m = target_vm.model;
-                        let instanceName = m.model.instanceName;
-                        if (m.type === 'container_operation') {
-                            instanceName = m.model.ownerContainerInstanceName + '::' + instanceName;
-                        }
+                        let instanceName = m.model.fullName;
+                        //if (m.type === 'container_operation') {
+                        //    instanceName = m.model.ownerContainerInstanceName + '::' + instanceName;
+                        //}
                         let textWidth = ctx.measureText(instanceName).width;
                         drawRect(ctx, {
                             x: lineEnd.x - 30,

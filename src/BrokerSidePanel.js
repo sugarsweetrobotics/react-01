@@ -17,7 +17,7 @@ export default class BrokerSidePanel extends React.Component {
 
 
     render() {
-        let instanceName = this.state.broker.instanceName;
+        let instanceName = this.state.broker.fullName;
         let titleIsActive = this.state.titleIsActive;
         return (
             <div className="process-in-sidemenu" style={{textAlign: "left"}} >

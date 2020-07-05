@@ -131,15 +131,15 @@ export class CanvasDraw {
 
     removeModel(model) {
         for(let i = 0;i < this.viewModels.length;++i) {
-            if (this.viewModels[i].model.model.instanceName !== model.model.instanceName) {
+            if (this.viewModels[i].model.model.fullName !== model.model.fullName) {
                 continue;
             }
             if (this.viewModels[i].model.type !== model.type) {
                 continue;
             }
-            if (model.type === 'container_operation' && model.model.ownerContainerInstanceName !== this.viewModels[i].model.model.ownerContainerInstanceName) {
-                continue;
-            }
+            //if (model.type === 'container_operation' && model.model.ownerContainerInstanceName !== this.viewModels[i].model.model.ownerContainerInstanceName) {
+            //    continue;
+            //}
 
             /// console.log('found');
             //this.models.splice(i, 1);
@@ -162,17 +162,17 @@ export class CanvasDraw {
         for(let vm of this.viewModels) {
             let m = vm.model;
             if (model.type === m.type) {
-                if (model.type === 'operation' && m.model.instanceName === model.model.instanceName) {
+                if (model.type === 'operation' && m.model.fullName === model.model.fullName) {
                     return this;
-                } else if (model.type === 'container_operation' && m.model.instanceName === model.model.instanceName && model.model.ownerContainerInstanceName === m.model.ownerContainerInstanceName) {
+                } else if (model.type === 'container_operation' && m.model.fullName === model.model.fullName) { //} && model.model.ownerContainerInstanceName === m.model.ownerContainerInstanceName) {
                     return this;
-                } else if (model.type === 'container' && m.model.instanceName === model.model.instanceName) {
+                } else if (model.type === 'container' && m.model.fullName === model.model.fullName) {
                     return this;
-                } else if (model.type === 'ec' && m.model.instanceName === model.model.instanceName) {
+                } else if (model.type === 'ec' && m.model.fullName === model.model.fullName) {
                     return this;
                 } else if (model.type === 'callback' && m.model.name === model.model.name) {
                     return this;
-                } else if (model.type === "topic" && m.model.instanceName === model.model.instanceName) {
+                } else if (model.type === "topic" && m.model.fullName === model.model.fullName) {
                     return this;
                 }
             }
@@ -447,14 +447,14 @@ export class CanvasDraw {
                             // let outputB_promise = outputP.brokerInfos();
                             let connectionBroker = bbtn.broker;
                             let connectionName = 'connection';
-                            let inputInstanceName = btn.input.model.model.instanceName;
-                            if (btn.input.model.type === 'container_operation') {
-                                inputInstanceName = btn.input.model.model.ownerContainerInstanceName + ':' + inputInstanceName;
-                            }
-                            let outputInstanceName = btn.output.model.model.instanceName;
-                            if (btn.output.model.type === 'container_operation') {
-                                outputInstanceName = btn.output.model.model.ownerContainerInstanceName + ':' + outputInstanceName;
-                            }
+                            let inputFullName = btn.input.model.model.full;
+                            //if (btn.input.model.type === 'container_operation') {
+                            //    inputInstanceName = btn.input.model.model.ownerContainerInstanceName + ':' + inputInstanceName;
+                           // }
+                            let outputFullName = btn.output.model.model.fullName;
+                            //if (btn.output.model.type === 'container_operation') {
+                            //    outputInstanceName = btn.output.model.model.ownerContainerInstanceName + ':' + outputInstanceName;
+                            //}
                             let connectionInfo = {
                                 name: connectionName,
                                 broker: connectionBroker,
@@ -465,7 +465,7 @@ export class CanvasDraw {
                                         port: urlToPort(btn.input.model.processUrl)
                                     },
                                     info: {
-                                        instanceName: inputInstanceName
+                                        fullName: inputFullName
                                     },
                                     target: {
                                         name: btn.targetName
@@ -478,7 +478,7 @@ export class CanvasDraw {
                                         port: urlToPort(btn.input.model.processUrl)
                                     },
                                     info: {
-                                        instanceName: outputInstanceName
+                                        fullName: outputFullName
                                     },
                                 },
                                 type: 'event'
@@ -756,7 +756,7 @@ export class CanvasDraw {
                     let m = vm.model.model;
                     if (vm.model.type === 'operation' && p) {
                         p.props.operations.forEach((op) => {
-                            if (op.instanceName === m.instanceName) {
+                            if (op.fullName === m.fullName) {
                                 vm.model.model = op;
                             }
                         });
@@ -765,14 +765,14 @@ export class CanvasDraw {
                     } else if (vm.model.type === 'container_operation') {
                         p.props.containers.forEach((con) => {
                             con.operations.forEach((op) => {
-                                if (op.instanceName === m.instanceName && op.ownerContainerInstanceName === m.ownerContainerInstanceName) {
+                                if (op.fullName === m.fullName) {
                                     vm.model.model = op;
                                 }
                             })
                         })
                     } else if (vm.model.type === 'ec') {
                         p.props.ecs.forEach((ec) => {
-                            if (ec.instanceName === m.instanceName) {
+                            if (ec.fullName === m.fullName) {
                                 vm.model.model = ec;
                             }
                         });
