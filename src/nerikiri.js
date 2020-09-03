@@ -260,8 +260,9 @@ export async function connect(proc, connectionInfo) {
 
 export async function changeECState(procUrl, ec, state) {
     if (procUrl) {
+        console.log('nerikiri.changeECState(', procUrl, ec, state, ')');
         let f = await fetch( procUrl + 'process/ecs/' + ec.fullName + '/state/', {
-            method: 'POST',
+            method: 'PUT',
             mode: 'cors',
             body: '"' + state + '"',
         });
@@ -300,11 +301,9 @@ export async function executeOperation(procUrl, op) {
 
 
 export async function bindOperation(procUrl, ec, op) {
+    console.log('nerikiri.bindOperation(', procUrl, ec, op, ')');
     let fullName = op.fullName;
-    //if (op.ownerContainerInstanceName) {
-    //    instanceName = op.ownerContainerInstanceName + ':' + instanceName;
-    //}
-    let f = await fetch( procUrl + 'process/ecs/' + ec.fullName + '/operations/', {
+    let f = await fetch( procUrl + 'process/ecs/' + ec.fullName + '/operations/' + op.fullName + '/', {
         method: 'POST',
         mode: 'cors',
         body: JSON.stringify(op)

@@ -447,7 +447,7 @@ export class CanvasDraw {
                             // let outputB_promise = outputP.brokerInfos();
                             let connectionBroker = bbtn.broker;
                             let connectionName = 'connection';
-                            let inputFullName = btn.input.model.model.full;
+                            let inputFullName = btn.input.model.model.fullName;
                             //if (btn.input.model.type === 'container_operation') {
                             //    inputInstanceName = btn.input.model.model.ownerContainerInstanceName + ':' + inputInstanceName;
                            // }
@@ -460,7 +460,7 @@ export class CanvasDraw {
                                 broker: connectionBroker,
                                 input: {
                                     broker: {
-                                        name: 'HTTPBroker',
+                                        typeName: 'HTTPBroker',
                                         host: urlToAddr((btn.input.model.processUrl)),
                                         port: urlToPort(btn.input.model.processUrl)
                                     },
@@ -473,7 +473,7 @@ export class CanvasDraw {
                                 },
                                 output: {
                                     broker: {
-                                        name: 'HTTPBroker',
+                                        typeName: 'HTTPBroker',
                                         host: urlToAddr((btn.input.model.processUrl)),
                                         port: urlToPort(btn.input.model.processUrl)
                                     },
@@ -513,15 +513,16 @@ export class CanvasDraw {
 
                         if (btn.input.model.processUrl === btn.output.model.processUrl) {
                             commonBrokers.push({
-                                name: "CoreBroker"
+                                fullName: "CoreBroker"
                             });
                         }
 
                         p.then((ps) => {
-                            // console.log('Searching Common Brokers:', ps);
+                            console.log('Searching Common Brokers:', ps);
                             for(let b1 of ps[0]) {
                                 for(let b2 of ps[1]) {
-                                    if (b1.name === b2.name) {
+                                    if (b1.fullName === b2.fullName) {
+                                        console.log('Found Name:', b1);
                                         commonBrokers.push(b1);
                                     }
                                 }

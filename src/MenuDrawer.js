@@ -836,12 +836,12 @@ function drawOperationSpecialMenu(drawer, ctx, vm, radius, color, progress, menu
 
                             posY += 30;
                             for (let b of commonBrokers) {
-                                let textWidth = ctx.measureText(b.name).width;
+                                let textWidth = ctx.measureText(b.fullName).width;
                                 drawRect(ctx, {
                                     x: lineEnd.x - 30 + 20 + 20,
                                     y: posY
                                 }, {width: 250, height: 20}, color);
-                                drawText(ctx, b.name, {
+                                drawText(ctx, b.fullName, {
                                     x: lineEnd.x - 30 + textWidth / 2, y: posY + 5
                                 }, color);
 
