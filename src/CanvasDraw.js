@@ -523,15 +523,16 @@ export class CanvasDraw {
 
                         if (btn.input.model.processUrl === btn.output.model.processUrl) {
                             commonBrokers.push({
-                                typeName: "CoreBroker"
+                                fullName: "CoreBroker"
                             });
                         }
 
                         p.then((ps) => {
-                            // console.log('Searching Common Brokers:', ps);
+                            console.log('Searching Common Brokers:', ps);
                             for(let b1 of ps[0]) {
                                 for(let b2 of ps[1]) {
-                                    if (b1.typeName === b2.typeName) {
+                                    if (b1.fullName === b2.fullName) {
+                                        console.log('Found Name:', b1);
                                         commonBrokers.push(b1);
                                     }
                                 }
@@ -674,15 +675,15 @@ export class CanvasDraw {
     }
 
     onDeleteButtonClicked(deleteButton) {
-        console.log('Delete Button clicked:', deleteButton);
+        //console.trace('Delete Button clicked:', deleteButton);
         let connection = deleteButton.connection;
-        console.log(deleteButton);
+        //console.trace(deleteButton);
         let processUrl = deleteButton.vm.model.processUrl;
         this.controller.deleteConnection(processUrl, connection);
     }
 
     onChangeECState(vm, state) {
-        console.log('onChangeECState:', vm, state);
+        //console.log('onChangeECState:', vm, state);
         let processUrl = vm.model.processUrl;
         return this.controller.changeECState(processUrl, vm.model.model, state).then((info) => {
             this.validate();
@@ -691,15 +692,15 @@ export class CanvasDraw {
     }
 
     onInvokeOperation(vm) {
-        console.log('onInvokeOperation:', vm);
+        //console.log('onInvokeOperation:', vm);
         let processUrl = vm.processUrl;
         return this.controller.invokeOperation(processUrl, vm.model).then((info) => {
             menuParameter.operationControlButtonState.outputLog = info;
-            console.log("onInvokeOperation: done.");
+            //console.log("onInvokeOperation: done.");
             this.validate();
-            console.log("onInvokeOperation: validated");
+            //console.log("onInvokeOperation: validated");
             //this.controller.update();]
-            console.log('updateCanvas/....');
+            //console.log('updateCanvas/....');
             this.updateCanvas();
             return info;
         }).catch((error) => {
@@ -708,7 +709,7 @@ export class CanvasDraw {
     }
 
     onCyclicOperation(vm) {
-        console.log('onCyclicOperation:', vm);
+        //console.log('onCyclicOperation:', vm);
         let processUrl = vm.processUrl;
         let handler = () => {
             return this.controller.invokeOperation(processUrl, vm.model).then((info) => {
@@ -728,7 +729,7 @@ export class CanvasDraw {
     }
 
     onExecuteOperation(vm) {
-        console.log('onExecuteOperation:', vm);
+        //console.log('onExecuteOperation:', vm);
         let processUrl = vm.processUrl;
         return this.controller.executeOperation(processUrl, vm.model).then((info) => {
             menuParameter.operationControlButtonState.outputLog = info;
@@ -739,7 +740,7 @@ export class CanvasDraw {
 
     onUnbindOperation(ecVM, operation) {
         let processUrl = ecVM.model.processUrl;
-        console.log('onUnbindOperation(', ecVM, operation, ')');
+        //console.log('onUnbindOperation(', ecVM, operation, ')');
         this.controller.unbindOperation(processUrl, ecVM.model.model, operation).then((info) => {
             this.validate();
         })
@@ -747,7 +748,7 @@ export class CanvasDraw {
 
     onBindOperationToEC(ecVM, opVM) {
         let processUrl = ecVM.model.processUrl;
-        console.log('onBindOperationToEC(', ecVM, opVM, ')')
+        //console.log('onBindOperationToEC(', ecVM, opVM, ')')
         this.controller.bindOperation(processUrl, ecVM.model.model, opVM.model.model).then((info) => {
             this.validate();
         })

@@ -95,6 +95,7 @@ export default class ModelController {
     }
 
     bindOperation(processUrl, ec, operation) {
+        console.info('ModelController.bindOperation(', processUrl, ec, operation, ')');
         return bindOperation(processUrl, ec, operation).then((info) => {
             this.update();
             return info;

@@ -400,7 +400,7 @@ function drawCallbackSpecialMenu(drawer, ctx, vm, radius, color, progress, menuA
             } else {
                 menuParameter.callbackButtonState.boundedOperationButtons = [];
                 let i = 0;
-                console.log('CallbackVm:,', vm);
+                //console.log('CallbackVm:,', vm);
                 vm.model.model.target.forEach((op) => {
                     drawRect(ctx, {
                         x: vm.position.x + rd * c + 140,
@@ -824,8 +824,8 @@ function drawOperationSpecialMenu(drawer, ctx, vm, radius, color, progress, menu
                             let commonBrokers = menuParameter.outputButtonState.pushedConnectorButton.pushedArgumentButton.commonBrokers;
                             menuParameter.outputButtonState.pushedConnectorButton.pushedArgumentButton.brokerButtons = [];
 
-                            console.log('Select Brokers');
-                            console.log(menuParameter.outputButtonState.pushedConnectorButton.pushedArgumentButton)
+                            //console.log('Select Brokers');
+                            //console.log(menuParameter.outputButtonState.pushedConnectorButton.pushedArgumentButton)
                             let arg = btn.targetName;
                             posY = posY + 30;
                             drawRect(ctx, {
@@ -841,12 +841,12 @@ function drawOperationSpecialMenu(drawer, ctx, vm, radius, color, progress, menu
 
                             posY += 30;
                             for (let b of commonBrokers) {
-                                let textWidth = ctx.measureText(b.name).width;
+                                let textWidth = ctx.measureText(b.fullName).width;
                                 drawRect(ctx, {
                                     x: lineEnd.x - 30 + 20 + 20,
                                     y: posY
                                 }, {width: 250, height: 20}, color);
-                                drawText(ctx, b.typeName, {
+                                drawText(ctx, b.fullName, {
                                     x: lineEnd.x - 30 + textWidth / 2, y: posY + 5
                                 }, color);
 
@@ -865,7 +865,8 @@ function drawOperationSpecialMenu(drawer, ctx, vm, radius, color, progress, menu
 
                         } else {
                             /// 引数ボタンを表示
-                            console.log('args:', m);
+                            //
+                            // console.log('args:', m);
                             posY = posY + 30;
                             for (let arg in m.model.defaultArg) {
                                 if (arg.length === 0) continue;
@@ -942,7 +943,9 @@ function drawOperationSpecialMenu(drawer, ctx, vm, radius, color, progress, menu
         let startAngle = Math.PI - Math.PI / 16 * numOfArgs;
         for(let arg in vm.model.model.defaultArg) {
             if (arg.length === 0) continue;
-            let input_icon_center = {x: vm.position.x - (vm.size.width / 2 + 90), y: vm.position.y};
+            let input_icon_center = {
+                x: vm.position.x - (vm.size.width / 2 + 90),
+                y: vm.position.y};
             let endAngle = startAngle + Math.PI / 8;
             drawPi(ctx, vm.position, radius + 100,  startAngle, endAngle, color, {
                 innerRadius: radius + 45,
@@ -955,7 +958,7 @@ function drawOperationSpecialMenu(drawer, ctx, vm, radius, color, progress, menu
                 x: vm.position.x + (vm.size.width / 2 + 90) * Math.cos(theta),
                 y: vm.position.y + (vm.size.width / 2 + 90) * Math.sin(theta)
             }
-            drawText(ctx, arg, input_icon_center, color);
+            drawText(ctx, arg, textPosition, color);
             startAngle = endAngle;
         }
     }
