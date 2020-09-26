@@ -95,7 +95,7 @@ export let crossingPointLineAndRect = (line, rect, margin) => {
             }
         }
     } else if (dx < 0 && dy < 0) { // 画面右上向き
-        console.log('C1', dy/dx, rect.height/rect.width);
+        //console.log('C1', dy/dx, rect.height/rect.width);
         if (dy/dx < rect.height/ rect.width) { // 左側の辺に接する
             let x = line.x1 - rect.width/2;
             return {
