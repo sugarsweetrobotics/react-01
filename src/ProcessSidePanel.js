@@ -7,6 +7,7 @@ import ECSidePanel from "./ECSidePanel";
 import BrokerSidePanel from "./BrokerSidePanel";
 import CallbackSidePanel from "./CallbackSidePanel";
 import TopicSidePanel from "./ToipicSidePanel";
+import FSMSidePanel from "./FSMSidePanel";
 
 export default class ProcessSidePanel extends React.Component {
 
@@ -22,6 +23,7 @@ export default class ProcessSidePanel extends React.Component {
             connectionIsActive: false,
             callbackIsActive: false,
             ecIsActive: false,
+            fsmIsActive: false,
             topicIsActive: false,
             brokerIsActive: false,
             info: {instanceName: ''},
@@ -65,6 +67,14 @@ export default class ProcessSidePanel extends React.Component {
         });
     }
 
+    fsmPanels() {
+        let process = this.state.controller.getProcesses()[this.props.processIndex];
+        return process.props.fsms.map((c, i) => {
+            return (<FSMSidePanel process={process} fsm={c} key={i}/>);
+        });
+        return null;
+    }
+
     brokerPanels() {
         let process = this.state.controller.getProcesses()[this.props.processIndex];
         // console.log(process.props.brokers);
@@ -78,7 +88,6 @@ export default class ProcessSidePanel extends React.Component {
         return (<CallbackSidePanel process={process} />);
     }
 
-
     render() {
 
         // console.log('ProcessSidePanel.render()');
@@ -88,6 +97,7 @@ export default class ProcessSidePanel extends React.Component {
         let connectionIsActive = this.state.connectionIsActive;
         let callbackIsActive = this.state.callbackIsActive;
         let ecIsActive = this.state.ecIsActive;
+        let fsmIsActive = this.state.fsmIsActive;
         let brokerIsActive = this.state.brokerIsActive;
         let topicIsActive = this.state.topicIsActive;
 
@@ -136,7 +146,7 @@ export default class ProcessSidePanel extends React.Component {
 
                     {/* Topics */}
                     <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
-                        <Accordion.Title index={3}
+                        <Accordion.Title index={4}
                                          active={topicIsActive}
                                          onClick={()=>{this.setState({topicIsActive: !this.state.topicIsActive})}}
                                          style={{padding: 0, marginBottom: 0}}
@@ -149,10 +159,24 @@ export default class ProcessSidePanel extends React.Component {
                         </Accordion.Content>
                     </Accordion>
 
+                    {/* FSMs */}
+                    <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
+                        <Accordion.Title index={5}
+                                         active={fsmIsActive}
+                                         onClick={()=>{this.setState({fsmIsActive: !this.state.fsmIsActive})}}
+                                         style={{padding: 0, marginBottom: 0}}
+                        >
+                            <Icon name="dropdown"></Icon>
+                            {"FSMs"}
+                        </Accordion.Title>
+                        <Accordion.Content  style={{padding: 0, marginTop: 0}} active={fsmIsActive}>
+                            {this.fsmPanels()}
+                        </Accordion.Content>
+                    </Accordion>
 
                     {/* ECs */}
                     <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
-                        <Accordion.Title index={2}
+                        <Accordion.Title index={6}
                                          active={ecIsActive}
                                          onClick={()=>{this.setState({ecIsActive: !this.state.ecIsActive})}}
                                          style={{padding: 0, marginBottom: 0}}

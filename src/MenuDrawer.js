@@ -28,6 +28,9 @@ export function drawSelectedVMBackground(ctx, vm) {
     } else if (vm.type === 'topic') {
         color = '#ff0fff';
         drawRectShadow(ctx, vm.position, vm.size, color);
+    } else if (vm.type === 'fsm') {
+        color = '#a2ff00';
+        drawRectShadow(ctx, vm.position, vm.size, color);
     }
 }
 
@@ -158,6 +161,8 @@ function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgre
         color = '#ffffff';
     } else if (vm.type === 'topic') {
         color = '#ff0fff';
+    } else if (vm.type === 'fsm') {
+        color = '#a2ff00';
     }
 
     {
@@ -248,6 +253,7 @@ function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgre
             else if (vm.type === 'container') title = 'Container';
             else if (vm.type === 'callback') title = 'Callback';
             else if (vm.type === 'topic') title = 'Topic';
+            else if (vm.type === 'fsm') title = 'FSM';
             drawText(ctx, title, {
                 x: rd * c + vm.position.x + 40,
                 y: rd * s + vm.position.y - 30
@@ -358,28 +364,29 @@ function drawCallbackSpecialMenu(drawer, ctx, vm, radius, color, progress, menuA
                     y: vm.position.y + rd * s + 40 * 1
                 }, { width: 260, height: 30}, color);
 
-                let instanceName = 'Bind Other Operation....';
-                drawText(ctx, instanceName,{
+                //let instanceName = ;
+                drawText(ctx, 'Bind Other Operation....',{
                     x: vm.position.x + rd * c + 20,
                     y: vm.position.y + rd * s + 5 + 40 * 1
                 }, color, { align: 'left'});
                 let i = 2;
                 drawer.viewModels.forEach((viewModel) => {
                     if (viewModel.type === 'operation' || viewModel.type === 'container_operation') {
-                        instanceName = viewModel.model.model.instanceName;
-                        if (viewModel.model.model.ownerContainerInstanceName) {
-                            instanceName = viewModel.model.model.ownerContainerInstanceName + ':' + instanceName;
-                        }
+                        let fullName = viewModel.model.model.fullName;
+                        //if (viewModel.model.model.ownerContainerInstanceName) {
+                        //    instanceName = viewModel.model.model.ownerContainerInstanceName + ':' + instanceName;
+                        //}
 
                         drawRect(ctx, {
                             x: vm.position.x + rd * c + 160,
                             y: vm.position.y + rd * s + 40 * i
                         }, { width: 260, height: 30}, color);
 
-                        drawText(ctx, instanceName,{
+                        drawText(ctx, fullName,{
                             x: vm.position.x + rd * c + 40,
                             y: vm.position.y + rd * s + 5 + 40 * i
                         }, color, { align: 'left'});
+
 
                         menuParameter.callbackButtonState.bindOperationTargetButtons.push({
                             position: {
@@ -541,25 +548,25 @@ function drawECSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimati
                     y: vm.position.y + rd * s + 40 * 1
                 }, { width: 260, height: 30}, color);
 
-                let instanceName = 'Bind Other Operation....';
-                drawText(ctx, instanceName,{
+               // let instanceName = ;
+                drawText(ctx, 'Bind Other Operation....',{
                     x: vm.position.x + rd * c + 20,
                     y: vm.position.y + rd * s + 5 + 40 * 1
                 }, color, { align: 'left'});
                 let i = 2;
                 drawer.viewModels.forEach((viewModel) => {
                     if (viewModel.type === 'operation' || viewModel.type === 'container_operation') {
-                        instanceName = viewModel.model.model.instanceName;
-                        if (viewModel.model.model.ownerContainerInstanceName) {
-                            instanceName = viewModel.model.model.ownerContainerInstanceName + ':' + instanceName;
-                        }
+                        let fullName = viewModel.model.model.fullName;
+                        //if (viewModel.model.model.ownerContainerInstanceName) {
+                        //    instanceName = viewModel.model.model.ownerContainerInstanceName + ':' + instanceName;
+                        //}
 
                         drawRect(ctx, {
                             x: vm.position.x + rd * c + 160,
                             y: vm.position.y + rd * s + 40 * i
                         }, { width: 260, height: 30}, color);
 
-                        drawText(ctx, instanceName,{
+                        drawText(ctx, fullName,{
                             x: vm.position.x + rd * c + 40,
                             y: vm.position.y + rd * s + 5 + 40 * i
                         }, color, { align: 'left'});
@@ -582,11 +589,9 @@ function drawECSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimati
                         y: vm.position.y + rd * s + 40 * (i + 1)
                     }, {width: 260, height: 30}, color);
 
-                    let instanceName = op.instanceName;
-                    if (op.ownerContainerInstanceName) {
-                        instanceName = op.ownerContainerInstanceName + ':' + instanceName;
-                    }
-                    drawText(ctx, instanceName, {
+                    let fullName = op.fullName;
+
+                    drawText(ctx, fullName, {
                         x: vm.position.x + rd * c + 20,
                         y: vm.position.y + rd * s + 5 + 40 * (i + 1)
                     }, color, {align: 'left'});
@@ -841,7 +846,7 @@ function drawOperationSpecialMenu(drawer, ctx, vm, radius, color, progress, menu
                                     x: lineEnd.x - 30 + 20 + 20,
                                     y: posY
                                 }, {width: 250, height: 20}, color);
-                                drawText(ctx, b.name, {
+                                drawText(ctx, b.typeName, {
                                     x: lineEnd.x - 30 + textWidth / 2, y: posY + 5
                                 }, color);
 

@@ -42,6 +42,7 @@ export default function process(url) {
             connections: [],
             ecs: [],
             topics: [],
+            fsms: [],
             brokers: [],
             callbacks: [],
         },
@@ -143,6 +144,14 @@ export default function process(url) {
             return f.json();
         },
 
+        fsmInfos: async() => {
+            let f = await fetch(url + "process/fsms/", {
+                method: 'GET',
+                mode: 'cors'
+            });
+            return f.json();
+        },
+
         boundOperationInfos: async(ecInfo) => {
             let f = await fetch(url + 'process/ecs/' + ecInfo.fullName + "/operations/", {
                 method: 'GET',
@@ -211,8 +220,13 @@ export async function updateProps(proc) {
             });
             return Promise.all(ps);
         }),
+        proc.fsmInfos().then((infos) => {
+            proc.props.fsms = infos;
+
+        }),
         proc.connectionInfos().then((infos)=>{
             proc.props.connections = infos; return infos;
+
         }),
         proc.ecInfos().then((infos)=>{
             let ps = infos.map((info) => {

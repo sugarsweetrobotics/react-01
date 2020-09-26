@@ -27,7 +27,7 @@ export function drawLeftSideMenu(drawer, ctx) {
         height: 300
     }, color, option)
 
-    let nMenu = 6;
+    let nMenu = 7;
     let leftSideMenuButtons_ = [];
 
     let drawIcon = (text, angle) => {
@@ -76,6 +76,7 @@ export function drawLeftSideMenu(drawer, ctx) {
     drawIcon('Topics', 0);
     drawIcon('ECs', Math.PI/nMenu*2);
     drawIcon('Callbacks', 2*Math.PI/nMenu*2);
+    drawIcon('FSMs', 3*Math.PI/nMenu*2);
     drawer.leftSideMenuButtons = leftSideMenuButtons_;
 
 }

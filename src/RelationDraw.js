@@ -81,12 +81,10 @@ export function drawECBindConnection(drawer, ctx, vm) {
         drawer.viewModels.forEach((tgt) => {
             if (tgt.type === 'container_operation' || tgt.type === 'operation') {
                 vm.model.model.boundOperations.forEach((op)=> {
-                    let fullInstanceName = op.instanceName;
-                    if (op.ownerContainerInstanceName !== undefined) {
-                        fullInstanceName = op.ownerContainerInstanceName + ':' + op.instanceName;
-                    }
-                    if ((tgt.type === 'operation' && fullInstanceName === tgt.model.model.instanceName) ||
-                        (tgt.type === 'container_operation' && fullInstanceName === tgt.model.model.ownerContainerInstanceName + ':' + tgt.model.model.instanceName)) {
+                    let fullName = op.fullName;
+
+                    if ((tgt.type === 'operation' && fullName === tgt.model.model.fullName) ||
+                        (tgt.type === 'container_operation' && fullName === tgt.model.model.fullName)) { //} + ':' + tgt.model.model.instanceName)) {
 
                         drawLine(ctx, startPos, tgt.position, color);
 
@@ -259,6 +257,69 @@ export function drawTopicConnection(drawer, ctx, vm) {
                         //drawText(ctx, c.input.target.name, p, color);
 
                     }
+                });
+            }
+        });
+    }
+}
+
+
+export function drawFSMBindConnection(drawer, ctx, vm) {
+    let color = '#a2ff00';
+    let padding = 10;
+    let stopPos = {x:vm.position.x - (vm.size.width-padding*3)/4 - padding/2, y: vm.position.y + vm.size.height/3 - padding};
+    let startPos = {x:vm.position.x + (vm.size.width-padding*3)/4 + padding/2, y: vm.position.y + vm.size.height/3 - padding};
+    let size = {width: (vm.size.width-padding*3)/2, height:vm.size.height/2-padding*3};
+
+    if (vm.type === 'fsm') {
+        drawer.viewModels.forEach((tgt) => {
+            if (tgt.type === 'container_operation' || tgt.type === 'operation') {
+                vm.model.model.states.forEach((state, i)=> {
+                    if (state.bindOperations !== undefined) {
+                        state.bindOperations.forEach((op, j) => {
+                            let pos = startPos;
+                            if (i % 2 != 0) {
+                                pos = stopPos;
+                            }
+
+                            let fullName = op.fullName;
+
+                            if ((tgt.type === 'operation' && fullName === tgt.model.model.fullName) ||
+                                (tgt.type === 'container_operation' && fullName === tgt.model.model.fullName)) { //} + ':' + tgt.model.model.instanceName)) {
+
+                                drawLine(ctx, pos, tgt.position, color);
+
+                                let line = {
+                                    x0: pos.x, y0: pos.y,
+                                    x1: tgt.position.x, y1: tgt.position.y
+                                };
+
+                                let point = crossingPointLineAndEllipse(line, {
+                                    width: tgt.size.width,
+                                    height: tgt.size.height
+                                }, 8);
+
+                                let dx = line.x0 - line.x1;
+                                let dy = -(line.y0 - line.y1);
+                                let theta = Math.atan2(dy, dx);
+
+                                let points = [
+                                    {x: -10, y: 0},
+                                    {x: 7, y: 6},
+                                    {x: 7, y: -6}
+                                ];
+
+                                let newPoints = points.map(
+                                    (p) => {
+                                        return translate(rotate(p, -theta), point);
+                                    }
+                                )
+                                drawPolygon(ctx, newPoints, color);
+
+                            }
+                        });
+                    }
+
                 });
             }
         });

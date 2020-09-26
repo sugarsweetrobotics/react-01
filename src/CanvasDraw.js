@@ -1,9 +1,10 @@
 
-import {drawVM, drawEC} from "./ObjectDrawer";
+import {drawVM, drawEC, drawFSM} from "./ObjectDrawer";
 import {
     drawCallbackBindConnection,
     drawContainerConnection,
     drawECBindConnection,
+    drawFSMBindConnection,
     drawOperationConnection, drawTopicConnection
 } from "./RelationDraw";
 import {includes, distanceToLine, distance} from "./Dimension";
@@ -32,6 +33,13 @@ export let ViewModel = (m, pos) => {
             type: 'topic',
             position: pos,
             size: {width: 150, height: 70},
+            model: m
+        }
+    } else if (m.type === 'fsm') {
+        return {
+            type: 'fsm',
+            position: pos,
+            size: {width: 150, height: 150},
             model: m
         }
     } else if (m.type === 'operation') {
@@ -173,6 +181,8 @@ export class CanvasDraw {
                 } else if (model.type === 'callback' && m.model.name === model.model.name) {
                     return this;
                 } else if (model.type === "topic" && m.model.fullName === model.model.fullName) {
+                    return this;
+                } else if (model.type === "fsm" && m.model.fullName === model.model.fullName) {
                     return this;
                 }
             }
@@ -447,7 +457,7 @@ export class CanvasDraw {
                             // let outputB_promise = outputP.brokerInfos();
                             let connectionBroker = bbtn.broker;
                             let connectionName = 'connection';
-                            let inputFullName = btn.input.model.model.full;
+                            let inputFullName = btn.input.model.model.fullName;
                             //if (btn.input.model.type === 'container_operation') {
                             //    inputInstanceName = btn.input.model.model.ownerContainerInstanceName + ':' + inputInstanceName;
                            // }
@@ -460,7 +470,7 @@ export class CanvasDraw {
                                 broker: connectionBroker,
                                 input: {
                                     broker: {
-                                        name: 'HTTPBroker',
+                                        typeName: 'HTTPBroker',
                                         host: urlToAddr((btn.input.model.processUrl)),
                                         port: urlToPort(btn.input.model.processUrl)
                                     },
@@ -473,7 +483,7 @@ export class CanvasDraw {
                                 },
                                 output: {
                                     broker: {
-                                        name: 'HTTPBroker',
+                                        typeName: 'HTTPBroker',
                                         host: urlToAddr((btn.input.model.processUrl)),
                                         port: urlToPort(btn.input.model.processUrl)
                                     },
@@ -513,7 +523,7 @@ export class CanvasDraw {
 
                         if (btn.input.model.processUrl === btn.output.model.processUrl) {
                             commonBrokers.push({
-                                name: "CoreBroker"
+                                typeName: "CoreBroker"
                             });
                         }
 
@@ -521,7 +531,7 @@ export class CanvasDraw {
                             // console.log('Searching Common Brokers:', ps);
                             for(let b1 of ps[0]) {
                                 for(let b2 of ps[1]) {
-                                    if (b1.name === b2.name) {
+                                    if (b1.typeName === b2.typeName) {
                                         commonBrokers.push(b1);
                                     }
                                 }
@@ -802,8 +812,13 @@ export class CanvasDraw {
         });
 
         this.viewModels.forEach((vm) => {
+            drawFSM(this, ctx, vm);
+        });
+
+        this.viewModels.forEach((vm) => {
             drawECBindConnection(this, ctx, vm);
             drawCallbackBindConnection(this, ctx, vm);
+            drawFSMBindConnection(this, ctx, vm);
         });
 
         this.viewModels.forEach((vm) => {
