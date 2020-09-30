@@ -4,7 +4,8 @@ import {
     drawCallbackBindConnection,
     drawContainerConnection,
     drawECBindConnection,
-    drawFSMBindConnection,
+    drawFSMBindOperationConnection,
+    drawFSMBindECConnection,
     drawOperationConnection, drawTopicConnection
 } from "./RelationDraw";
 import {includes, distanceToLine, distance} from "./Dimension";
@@ -819,7 +820,8 @@ export class CanvasDraw {
         this.viewModels.forEach((vm) => {
             drawECBindConnection(this, ctx, vm);
             drawCallbackBindConnection(this, ctx, vm);
-            drawFSMBindConnection(this, ctx, vm);
+            drawFSMBindOperationConnection(this, ctx, vm);
+            drawFSMBindECConnection(this, ctx, vm);
         });
 
         this.viewModels.forEach((vm) => {

@@ -264,7 +264,9 @@ export function drawTopicConnection(drawer, ctx, vm) {
 }
 
 
-export function drawFSMBindConnection(drawer, ctx, vm) {
+
+
+export function drawFSMBindOperationConnection(drawer, ctx, vm) {
     let color = '#a2ff00';
     let padding = 10;
     let stopPos = {x:vm.position.x - (vm.size.width-padding*3)/4 - padding/2, y: vm.position.y + vm.size.height/3 - padding};
@@ -275,8 +277,8 @@ export function drawFSMBindConnection(drawer, ctx, vm) {
         drawer.viewModels.forEach((tgt) => {
             if (tgt.type === 'container_operation' || tgt.type === 'operation') {
                 vm.model.model.states.forEach((state, i)=> {
-                    if (state.bindOperations !== undefined) {
-                        state.bindOperations.forEach((op, j) => {
+                    if (state.boundOperations !== undefined) {
+                        state.boundOperations.forEach((op, j) => {
                             let pos = startPos;
                             if (i % 2 != 0) {
                                 pos = stopPos;
@@ -319,6 +321,137 @@ export function drawFSMBindConnection(drawer, ctx, vm) {
                             }
                         });
                     }
+
+                });
+            }
+        });
+    }
+}
+
+
+
+
+export function drawFSMBindECConnection(drawer, ctx, vm) {
+    let color = '#a2ff00';
+    let padding = 10;
+    let stopPos = {x:vm.position.x - (vm.size.width-padding*3)/4 - padding/2, y: vm.position.y + vm.size.height/3 - padding};
+    let startPos = {x:vm.position.x + (vm.size.width-padding*3)/4 + padding/2, y: vm.position.y + vm.size.height/3 - padding};
+    let size = {width: (vm.size.width-padding*3)/2, height:vm.size.height/2-padding*3};
+
+    if (vm.type === 'fsm') {
+        drawer.viewModels.forEach((tgt) => {
+            if (tgt.type === 'ec') {
+                vm.model.model.states.forEach((state, i)=> {
+                    console.log('state:', state);
+                    if (state.boundECStart !== undefined) {
+                        state.boundECStart.forEach((ec, j) => {
+                            let pos = startPos;
+                            if (i % 2 != 0) {
+                                pos = stopPos;
+                            }
+
+
+                            let fullName = ec.fullName;
+
+                            if ((tgt.type === 'ec' && fullName === tgt.model.model.fullName)) { //} + ':' + tgt.model.model.instanceName)) {
+
+
+                                let tgtStopPos = {x:tgt.position.x - (tgt.size.width-padding*3)/4 - padding/2, y: tgt.position.y + tgt.size.height/3 - padding};
+                                let tgtStartPos = {x:tgt.position.x + (tgt.size.width-padding*3)/4 + padding/2, y: tgt.position.y + tgt.size.height/3 - padding};
+                                let tgtSize = {width: (tgt.size.width-padding*3)/2, height:tgt.size.height/2-padding*3};
+
+                                drawLine(ctx, pos, {
+                                    x: tgtStartPos.x,
+                                    y: tgtStartPos.y
+                                }, color);
+
+                                let line = {
+                                    x0: pos.x, y0: pos.y,
+                                    x1: tgtStartPos.x, y1: tgtStartPos.y
+                                };
+
+                                let point = crossingPointLineAndRect(line, {
+                                    x: tgtStartPos.x ,
+                                    y: tgtStartPos.y,
+                                    width: tgtSize.width,
+                                    height: tgtSize.height
+                                }, 8);
+
+                                let dx = line.x0 - line.x1;
+                                let dy = -(line.y0 - line.y1);
+                                let theta = Math.atan2(dy, dx);
+
+                                let points = [
+                                    {x: -10, y: 0},
+                                    {x: 7, y: 6},
+                                    {x: 7, y: -6}
+                                ];
+
+                                let newPoints = points.map(
+                                    (p) => {
+                                        return translate(rotate(p, -theta), point);
+                                    }
+                                )
+                                drawPolygon(ctx, newPoints, color);
+
+                            }
+                        });
+                    }
+
+                    if (state.boundECStop !== undefined) {
+                        state.boundECStop.forEach((ec, j) => {
+                            let pos = startPos;
+                            if (i % 2 != 0) {
+                                pos = stopPos;
+                            }
+                            let fullName = ec.fullName;
+
+                            if ((tgt.type === 'ec' && fullName === tgt.model.model.fullName)) { //} + ':' + tgt.model.model.instanceName)) {
+
+
+                                let tgtStopPos = {x:tgt.position.x - (tgt.size.width-padding*3)/4 - padding/2, y: tgt.position.y + tgt.size.height/3 - padding};
+                                let tgtStartPos = {x:tgt.position.x + (tgt.size.width-padding*3)/4 + padding/2, y: tgt.position.y + tgt.size.height/3 - padding};
+                                let tgtSize = {width: (tgt.size.width-padding*3)/2, height:tgt.size.height/2-padding*3};
+
+                                drawLine(ctx, pos, {
+                                    x: tgtStopPos.x,
+                                    y: tgtStopPos.y
+                                }, color);
+
+                                let line = {
+                                    x0: pos.x, y0: pos.y,
+                                    x1: tgtStopPos.x, y1: tgtStopPos.y
+                                };
+
+                                let point = crossingPointLineAndRect(line, {
+                                    x: tgtStopPos.x ,
+                                    y: tgtStopPos.y,
+                                    width: tgtSize.width,
+                                    height: tgtSize.height
+                                }, 8);
+
+                                let dx = line.x0 - line.x1;
+                                let dy = -(line.y0 - line.y1);
+                                let theta = Math.atan2(dy, dx);
+
+                                let points = [
+                                    {x: -10, y: 0},
+                                    {x: 7, y: 6},
+                                    {x: 7, y: -6}
+                                ];
+
+                                let newPoints = points.map(
+                                    (p) => {
+                                        return translate(rotate(p, -theta), point);
+                                    }
+                                )
+                                drawPolygon(ctx, newPoints, color);
+
+                            }
+                        });
+                    }
+
+
 
                 });
             }

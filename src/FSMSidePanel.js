@@ -34,7 +34,7 @@ export default class FSMSidePanel extends React.Component {
 
     statePanels() {
         return this.state.fsm.states.map((stat, i ) => {
-            console.log(stat);
+            //console.log(stat);
             return <FSMStatePanel key={i} state={stat} fsm={this.state.fsm} />
         });
     }

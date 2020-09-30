@@ -34,7 +34,7 @@ export default class TopicSidePanel extends React.Component {
 
         let cons = [];
         let i = 0;
-        console.log(this.props.topic);
+        //console.log(this.props.topic);
         for(let key in this.props.topic.connections.input) {
             if (key === '__ERROR__') return;
             cons.push(
