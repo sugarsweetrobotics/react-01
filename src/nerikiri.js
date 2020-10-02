@@ -272,6 +272,19 @@ export async function connect(proc, connectionInfo) {
     }
 }
 
+export async function changeFSMState(procUrl, fsm, state) {
+    if (procUrl) {
+        console.log('nerikiri.changeECState(', procUrl, fsm, state, ')');
+        let f = await fetch( procUrl + 'process/fsms/' + fsm.fullName + '/state/', {
+            method: 'PUT',
+            mode: 'cors',
+            body: '"' + state + '"',
+        });
+        return f.json();
+    }
+}
+
+
 export async function changeECState(procUrl, ec, state) {
     if (procUrl) {
         console.log('nerikiri.changeECState(', procUrl, ec, state, ')');

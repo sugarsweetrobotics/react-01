@@ -308,6 +308,16 @@ export class CanvasDraw {
     }
 
     checkMenuButtonClicked(point) {
+        if (menuParameter.fsmButtonState.stateButtonStates) {
+            for(let st of menuParameter.fsmButtonState.stateButtonStates) {
+                if (includes(st, point)) {
+                    console.log('Clicked: ', st.state.name);
+                    this.onChangeFSMState(menuParameter.fsmButtonState.viewModel, st.state);
+                    return true;
+                }
+            }
+
+        }
         /// ECのメニューが表示されているとき
         if (menuParameter.ecButtonState.startButtonState) {
             console.info('check EC Button state');
@@ -692,6 +702,14 @@ export class CanvasDraw {
         });
     }
 
+    onChangeFSMState(vm, state) {
+        //console.log('onChangeECState:', vm, state);
+        let processUrl = vm.model.processUrl;
+        return this.controller.changeFSMState(processUrl, vm.model.model, state.name).then((info) => {
+            this.validate();
+            this.controller.update();
+        });
+    }
     onInvokeOperation(vm) {
         //console.log('onInvokeOperation:', vm);
         let processUrl = vm.processUrl;
@@ -784,6 +802,12 @@ export class CanvasDraw {
                         })
                     } else if (vm.model.type === 'ec') {
                         p.props.ecs.forEach((ec) => {
+                            if (ec.fullName === m.fullName) {
+                                vm.model.model = ec;
+                            }
+                        });
+                    } else if (vm.model.type === 'fsm') {
+                        p.props.fsms.forEach((ec) => {
                             if (ec.fullName === m.fullName) {
                                 vm.model.model = ec;
                             }

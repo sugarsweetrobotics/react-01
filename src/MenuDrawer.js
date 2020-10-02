@@ -276,6 +276,13 @@ function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgre
         drawECSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress);
     }
 
+
+    if (vm.type === 'fsm') {
+
+        // menuParameter.ecButtonState = {};
+        drawFSMSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress);
+    }
+
     if (vm.type === 'callback') {
 
         // menuParameter.ecButtonState = {};
@@ -470,6 +477,33 @@ function drawCallbackSpecialMenu(drawer, ctx, vm, radius, color, progress, menuA
             }
         }
     }
+}
+
+function drawFSMSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress) {
+    // console.log('drawECSpecialMenu');
+    let padding = 15;
+    let stride = vm.size.height/3;
+    let stopPos = {x:vm.position.x - (vm.size.width-padding*3)/4 - padding/2, y: vm.position.y + vm.size.height/3 - padding - stride};
+    let startPos = {x:vm.position.x + (vm.size.width-padding*3)/4 + padding/2, y: vm.position.y + vm.size.height/3 - padding - stride};
+
+    let size = {width: (vm.size.width-padding*3)/2, height:vm.size.height/2-padding*3};
+
+    menuParameter.fsmButtonState.viewModel = vm;
+    let leftPos = startPos;
+    let rightPos = stopPos;
+    menuParameter.fsmButtonState.stateButtonStates = vm.model.model.states.map((s, i) => {
+        if (i % 2 === 0) {
+            leftPos.y += stride;
+            rightPos.y += stride;
+        }
+        return {
+            state: s,
+            position: i % 2 === 0 ? leftPos : rightPos,
+            size: size
+        };
+    });
+
+    menuParameter.fsmButtonState.boundedOperationButtons = []
 }
 
 function drawECSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress) {

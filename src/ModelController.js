@@ -1,6 +1,6 @@
 
 
-import process, {changeECState, deleteConnection, updateProps, invokeOperation, executeOperation, bindOperation, unbindOperation} from './nerikiri';
+import process, {changeECState, changeFSMState, deleteConnection, updateProps, invokeOperation, executeOperation, bindOperation, unbindOperation} from './nerikiri';
 
 export default class ModelController {
 
@@ -68,6 +68,14 @@ export default class ModelController {
 
     changeECState(processUrl, ec, state) {
         return changeECState(processUrl, ec, state).then((info) => {
+            // console.log('updateECState');
+            this.update();
+            return info;
+        })
+    }
+
+    changeFSMState(processUrl, fsm, state) {
+        return changeFSMState(processUrl, fsm, state).then((info) => {
             // console.log('updateECState');
             this.update();
             return info;

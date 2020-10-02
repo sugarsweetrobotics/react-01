@@ -5,6 +5,7 @@ export let menuParameter = {
         connectorButtons: [],
     },
     ecButtonState: {},
+    fsmButtonState: {},
     callbackButtonState: {},
     pushedConnectorButton: null,
     deleteButton: null,
