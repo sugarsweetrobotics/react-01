@@ -59,7 +59,7 @@ export default class ContainerSidePanel extends React.Component {
                 <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
                     <Accordion.Title index={0}
                                      active={titleIsActive}
-                                     style={{padding: 0, marginBottom: 0}}
+                                     style={{padding: 0, marginBottom: 0, color: '#a6fafd'}}
                                      onClick={()=>{this.setState({titleIsActive: !this.state.titleIsActive})}}
                                      draggable={true}
                                      onDragStart={(e) => {
@@ -79,11 +79,11 @@ export default class ContainerSidePanel extends React.Component {
                     <Accordion.Content active={titleIsActive} style={{padding: 0, marginTop: 0}}>
 
                         {/* Operations */}
-                        <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
+                        <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10, color:'#a6fafd'}}>
                             <Accordion.Title index={1}
                                              active={operationIsActive}
                                              onClick={()=>{this.setState({operationIsActive: !this.state.operationIsActive})}}
-                                             style={{padding: 0, marginBottom: 0}}
+                                             style={{padding: 0, marginBottom: 0, color: '#a6fafd'}}
                             >
                                 <Icon name="dropdown"></Icon>
                                 {"Operations"}

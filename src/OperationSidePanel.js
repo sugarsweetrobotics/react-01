@@ -84,7 +84,7 @@ export default class OperationSidePanel extends React.Component {
                 <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
                     <Accordion.Title index={0}
                                      active={titleIsActive}
-                                     style={{padding: 0, marginBottom: 0}}
+                                     style={{padding: 0, marginBottom: 0, color: '#ff9174'}}
                                      onClick={()=>{this.setState({titleIsActive: !this.state.titleIsActive})}}
                                      draggable={true}
                                      onDragStart={(e) => {
@@ -105,18 +105,18 @@ export default class OperationSidePanel extends React.Component {
                         <Icon name="dropdown"></Icon>
                         {instanceName}
                     </Accordion.Title>
-                    <Accordion.Content active={titleIsActive}>
+                    <Accordion.Content active={titleIsActive} style={{padding: 0, marginTop: 0}}>
                         {/* Connections */}
                         <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
                             <Accordion.Title index={1}
                                              active={connectionIsActive}
                                              onClick={()=>{this.setState({connectionIsActive: !this.state.connectionIsActive})}}
-                                             style={{padding: 0, marginBottom: 0}}
+                                             style={{padding: 0, marginBottom: 0, color: '#ff9174'}}
                             >
                                 <Icon name="dropdown"></Icon>
                                 {"Connections"}
                             </Accordion.Title>
-                            <Accordion.Content  style={{padding: 0, marginTop: 0, marginLeft: 10}} active={connectionIsActive}>
+                            <Accordion.Content  style={{padding: 0, marginTop: 0, marginLeft: 10, color: "white"}} active={connectionIsActive}>
                                 <div>Input</div>
                                 <div>
                                 {this.inputConnectionPanelsAll()}

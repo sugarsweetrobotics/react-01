@@ -113,6 +113,7 @@ let menuOfSelectedVM = (vm) => {
 export class CanvasDraw {
 
     constructor(controller, updateCanvasFunc) {
+        this.startup = 0;
         this.controller = controller;
         //this.models = [];
         this.viewModels = [];
@@ -136,6 +137,8 @@ export class CanvasDraw {
         })
 
         this.updateCanvas = ()=>updateCanvasFunc()
+
+
     }
 
     removeModel(model) {
@@ -686,7 +689,7 @@ export class CanvasDraw {
     }
 
     onDeleteButtonClicked(deleteButton) {
-        //console.trace('Delete Button clicked:', deleteButton);
+        console.trace('Delete Button clicked:', deleteButton);
         let connection = deleteButton.connection;
         //console.trace(deleteButton);
         let processUrl = deleteButton.vm.model.processUrl;
@@ -863,7 +866,7 @@ export class CanvasDraw {
                 x: -this.canvasOffset.x,
                 y: -this.canvasOffset.y + ctx.canvas.clientHeight / 2
             };
-            drawLeftSideMenu(this, ctx);
+            //drawLeftSideMenu(this, ctx);
         } else {
             this.leftSideMenu = false;
         }
@@ -905,6 +908,8 @@ export class CanvasDraw {
         ctx.shadowOffsetY = 0;
         ctx.shadowBlur = 0;
 
+        let rate = (this.startup - 50) * 2/ 100.0;
+        rate = rate < 0 ? 0 : (rate > 100 ? 100 : rate);
         let drawArcBackV = (x, w) => {
             if (w === undefined) w = 0.5;
             let p = Math.floor(this.canvasOffset.y * 1.1 / 200);
@@ -926,22 +931,33 @@ export class CanvasDraw {
 
             if (x === 0) {
                 drawLine(ctx, {
-                    x: -this.canvasOffset.x + 0,
+                    x: -this.canvasOffset.x + this.clientSize.width/2,
                     y: -this.canvasOffset.y + this.clientSize.height / 2
                 },{
-                    x: -this.canvasOffset.x + this.clientSize.width ,
+                    x: -this.canvasOffset.x + this.clientSize.width/2 + this.clientSize.width/2 * rate,
+                    y: -this.canvasOffset.y + this.clientSize.height / 2
+                }, color, {
+                    lineWidth: w, blur: 5
+                });
+
+                drawLine(ctx, {
+                    x: -this.canvasOffset.x + this.clientSize.width/2,
+                    y: -this.canvasOffset.y + this.clientSize.height / 2
+                },{
+                    x: -this.canvasOffset.x + this.clientSize.width/2 -  this.clientSize.width/2 * rate,
                     y: -this.canvasOffset.y + this.clientSize.height / 2
                 }, color, {
                     lineWidth: w, blur: 5
                 });
             }
 
-            let i = x < 0 ? Math.PI / 2 : Math.PI * 3 / 2;
+            let i = x < 0 ? Math.PI / 2: Math.PI * 3 / 2;
             let rad = 2400000 / x;
+            let theta = Math.atan2(this.clientSize.width/2, Math.abs(-this.canvasOffset.y  + rad + 2 * x ) - this.clientSize.height/2 );
             drawArc(ctx, {
                 x: -this.canvasOffset.x + this.clientSize.width / 2 ,
                 y: -this.canvasOffset.y + this.clientSize.height/2 + rad + 2 * x
-            }, Math.abs(rad + x), -0.3 + i, 0.3 + i, color, {
+            }, Math.abs(rad + x), (-theta * rate + i) , (theta * rate + i) , color, {
                 lineWidth: w, blur: 5
             });
         }
@@ -969,10 +985,20 @@ export class CanvasDraw {
             if (x === 0) {
                 drawLine(ctx, {
                     x: -this.canvasOffset.x + this.clientSize.width / 2,
-                    y: -this.canvasOffset.y + 0
+                    y: -this.canvasOffset.y + this.clientSize.height / 2
                 },{
+                    x: -this.canvasOffset.x + this.clientSize.width / 2 ,
+                    y: -this.canvasOffset.y + this.clientSize.height / 2 + this.clientSize.height / 2 * rate
+                }, color, {
+                    lineWidth: w, blur: 5
+                });
+
+                drawLine(ctx, {
                     x: -this.canvasOffset.x + this.clientSize.width / 2,
-                    y: -this.canvasOffset.y + this.clientSize.height
+                    y: -this.canvasOffset.y + this.clientSize.height / 2
+                },{
+                    x: -this.canvasOffset.x + this.clientSize.width / 2 ,
+                    y: -this.canvasOffset.y + this.clientSize.height / 2 - this.clientSize.height / 2 * rate
                 }, color, {
                     lineWidth: w, blur: 5
                 });
@@ -980,10 +1006,11 @@ export class CanvasDraw {
 
             let i = x > 0 ? Math.PI : 0;
             let rad = 2400000 / x;
+            let theta = Math.atan2( this.clientSize.height/2, Math.abs(-this.canvasOffset.x  + rad + 2 * x) - this.clientSize.width / 2) ;
             drawArc(ctx, {
                 x: -this.canvasOffset.x + this.clientSize.width / 2 + rad + 2 * x,
                 y: -this.canvasOffset.y + this.clientSize.height/2
-            }, Math.abs(rad + x), -0.3 + i, 0.3 + i, color, {
+            }, Math.abs(rad + x), -theta * rate + i, theta * rate + i, color, {
                 lineWidth: w, blur: 5
             });
         }

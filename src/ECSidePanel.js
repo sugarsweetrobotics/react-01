@@ -32,10 +32,10 @@ export default class ECSidePanel extends React.Component {
         let operationIsActive = this.state.operationIsActive;
         return (
             <div className="process-in-sidemenu" style={{textAlign: "left"}} >
-                <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
+                <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10, color: "white"}}>
                     <Accordion.Title index={0}
                                      active={titleIsActive}
-                                     style={{padding: 0, marginBottom: 0}}
+                                     style={{padding: 0, marginBottom: 0, color: "#fdff85"}}
                                      onClick={()=>{this.setState({titleIsActive: !this.state.titleIsActive})}}
                                      draggable={true}
                                      onDragStart={(e) => {
@@ -60,7 +60,7 @@ export default class ECSidePanel extends React.Component {
                             <Accordion.Title index={1}
                                              active={operationIsActive}
                                              onClick={()=>{this.setState({operationIsActive: !this.state.operationIsActive})}}
-                                             style={{padding: 0, marginBottom: 0}}
+                                             style={{padding: 0, marginBottom: 0, color: "#fdff85"}}
                             >
                                 <Icon name="dropdown"></Icon>
                                 {"Operations"}

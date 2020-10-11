@@ -26,14 +26,14 @@ export default class ConnectionSidePanel extends React.Component {
                 <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
                     <Accordion.Title index={0}
                                      active={titleIsActive}
-                                     style={{padding: 0, marginBottom: 0}}
+                                     style={{padding: 0, marginBottom: 0, color: "#b3ffd5"}}
                                      onClick={()=>{this.setState({titleIsActive: !this.state.titleIsActive})}}
                     >
                         <Icon name="dropdown"></Icon>
                         {instanceName}
                     </Accordion.Title>
                     <Accordion.Content active={titleIsActive}>
-                        <div style={{marginLeft: 10}}>
+                        <div style={{marginLeft: 10, color: "white"}}>
                             <div>type</div>
                             <div style={{marginLeft: 10}}>{connectionType}</div>
                             <div>input</div>

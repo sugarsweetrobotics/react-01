@@ -66,7 +66,7 @@ export default class TopicSidePanel extends React.Component {
                 <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
                     <Accordion.Title index={0}
                                      active={titleIsActive}
-                                     style={{padding: 0, marginBottom: 0}}
+                                     style={{padding: 0, marginBottom: 0, color: '#fda6fd'}}
                                      onClick={()=>{this.setState({titleIsActive: !this.state.titleIsActive})}}
                                      draggable={true}
                                      onDragStart={(e) => {
@@ -91,7 +91,7 @@ export default class TopicSidePanel extends React.Component {
                             <Accordion.Title index={1}
                                              active={connectionIsActive}
                                              onClick={()=>{this.setState({connectionIsActive: !this.state.connectionIsActive})}}
-                                             style={{padding: 0, marginBottom: 0}}
+                                             style={{padding: 0, marginBottom: 0, color: '#ff0fff'}}
                             >
                                 <Icon name="dropdown"></Icon>
                                 {"Connections"}

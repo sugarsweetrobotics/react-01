@@ -26,6 +26,7 @@ export default class App extends React.Component {
         this.state.controller.loadProcess(url, (_)=>{
             this.setState({controller: this.state.controller});
         })
+
     }
 
     onMenuIconClicked(e) {
@@ -38,6 +39,7 @@ export default class App extends React.Component {
             <div className="App">
                 <Sidebar.Pushable as={Segment}>
                     <Sidebar as={Menu}
+                             style={{"background-color": "#222a"}}
                              animation='overlay'
                              visible={this.state.sidebar_visible}
                              vertical

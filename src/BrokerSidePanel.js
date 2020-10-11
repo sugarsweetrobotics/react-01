@@ -24,7 +24,7 @@ export default class BrokerSidePanel extends React.Component {
                 <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
                     <Accordion.Title index={0}
                                      active={titleIsActive}
-                                     style={{padding: 0, marginBottom: 0}}
+                                     style={{padding: 0, marginBottom: 0, color: "white"}}
                                      onClick={()=>{this.setState({titleIsActive: !this.state.titleIsActive})}}
                     >
                         <Icon name="dropdown"></Icon>

@@ -17,14 +17,14 @@ export default class ProcessSidePanel extends React.Component {
         this.state = {
             controller: props.controller,
             processIndex: -1,
-            titleIsActive: false,
-            operationIsActive: false,
-            containerIsActive: false,
+            titleIsActive: true,
+            operationIsActive: true,
+            containerIsActive: true,
             connectionIsActive: false,
             callbackIsActive: false,
-            ecIsActive: false,
-            fsmIsActive: false,
-            topicIsActive: false,
+            ecIsActive: true,
+            fsmIsActive: true,
+            topicIsActive: true,
             brokerIsActive: false,
             info: {instanceName: ''},
         };
@@ -104,11 +104,11 @@ export default class ProcessSidePanel extends React.Component {
         let process = this.state.controller.getProcesses()[this.props.processIndex];
         let url = process.url();
         return (
-        <div className="process-in-sidemenu" style={{textAlign: "left"}}>
+        <div className="process-in-sidemenu" style={{textAlign: "left", color: "#00ffe8"}}>
             <Accordion style={{padding: 0, marginTop: 0}}>
                 <Accordion.Title index={0}
                                  active={titleIsActive}
-                                 style={{padding: 0, marginBottom: 0}}
+                                 style={{padding: 0, marginBottom: 0, color: "#a8f3e9"}}
                                  onClick={()=>{this.setState({titleIsActive: !this.state.titleIsActive})}} >
                     <Icon name="dropdown"></Icon>
                     {"Process(" + url+ ")"}
@@ -119,12 +119,12 @@ export default class ProcessSidePanel extends React.Component {
                         <Accordion.Title index={1}
                                          active={operationIsActive}
                                          onClick={()=>{this.setState({operationIsActive: !this.state.operationIsActive})}}
-                                         style={{padding: 0, marginBottom: 0}}
+                                         style={{padding: 0, marginBottom: 0, color: '#ff9174'}}
                         >
                             <Icon name="dropdown"></Icon>
                             {"Operations"}
                         </Accordion.Title>
-                        <Accordion.Content  style={{padding: 0, marginTop: 0}} active={operationIsActive}>
+                        <Accordion.Content  style={{padding: 0, marginTop: 0, color: '#ff9174'}} active={operationIsActive}>
                             {this.operationPanels()}
                         </Accordion.Content>
                     </Accordion>
@@ -134,7 +134,7 @@ export default class ProcessSidePanel extends React.Component {
                         <Accordion.Title index={2}
                                          active={containerIsActive}
                                          onClick={()=>{this.setState({containerIsActive: !this.state.containerIsActive})}}
-                                         style={{padding: 0, marginBottom: 0}}
+                                         style={{padding: 0, marginBottom: 0, color:  '#a6fafd'}}
                         >
                             <Icon name="dropdown"></Icon>
                             {"Containers"}
@@ -149,7 +149,7 @@ export default class ProcessSidePanel extends React.Component {
                         <Accordion.Title index={4}
                                          active={topicIsActive}
                                          onClick={()=>{this.setState({topicIsActive: !this.state.topicIsActive})}}
-                                         style={{padding: 0, marginBottom: 0}}
+                                         style={{padding: 0, marginBottom: 0, color: '#fda6fd'}}
                         >
                             <Icon name="dropdown"></Icon>
                             {"Topics"}
@@ -164,7 +164,7 @@ export default class ProcessSidePanel extends React.Component {
                         <Accordion.Title index={5}
                                          active={fsmIsActive}
                                          onClick={()=>{this.setState({fsmIsActive: !this.state.fsmIsActive})}}
-                                         style={{padding: 0, marginBottom: 0}}
+                                         style={{padding: 0, marginBottom: 0, color: "#6cf17e"}}
                         >
                             <Icon name="dropdown"></Icon>
                             {"FSMs"}
@@ -179,7 +179,7 @@ export default class ProcessSidePanel extends React.Component {
                         <Accordion.Title index={6}
                                          active={ecIsActive}
                                          onClick={()=>{this.setState({ecIsActive: !this.state.ecIsActive})}}
-                                         style={{padding: 0, marginBottom: 0}}
+                                         style={{padding: 0, marginBottom: 0, color: "#fdff85"}}
                         >
                             <Icon name="dropdown"></Icon>
                             {"ECs"}
@@ -194,7 +194,7 @@ export default class ProcessSidePanel extends React.Component {
                         <Accordion.Title index={3}
                                          active={brokerIsActive}
                                          onClick={()=>{this.setState({brokerIsActive: !this.state.brokerIsActive})}}
-                                         style={{padding: 0, marginBottom: 0}}
+                                         style={{padding: 0, marginBottom: 0, color: "white"}}
                         >
                             <Icon name="dropdown"></Icon>
                             {"Brokers"}
@@ -209,7 +209,7 @@ export default class ProcessSidePanel extends React.Component {
                         <Accordion.Title index={4}
                                          active={connectionIsActive}
                                          onClick={()=>{this.setState({connectionIsActive: !this.state.connectionIsActive})}}
-                                         style={{padding: 0, marginBottom: 0}}
+                                         style={{padding: 0, marginBottom: 0, color: "white"}}
                         >
                             <Icon name="dropdown"></Icon>
                             {"Connections"}
@@ -225,7 +225,7 @@ export default class ProcessSidePanel extends React.Component {
                         <Accordion.Title index={5}
                                          active={callbackIsActive}
                                          onClick={()=>{this.setState({callbackIsActive: !this.state.callbackIsActive})}}
-                                         style={{padding: 0, marginBottom: 0}}
+                                         style={{padding: 0, marginBottom: 0, color: "white"}}
                         >
                             <Icon name="dropdown"></Icon>
                             {"Callbacks"}

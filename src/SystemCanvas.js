@@ -8,9 +8,11 @@ export default class SystemCanvas extends React.Component {
         super(props);
 
         this.state = {
+            startup: 0,
             backgroundColor: '#000000',
             model: new CanvasDraw(props.controller, this.updateCanvas.bind(this)),
         };
+
     }
 
     componentDidMount() {
@@ -50,6 +52,17 @@ export default class SystemCanvas extends React.Component {
                 this.setState({model: model});
             })});
         });
+
+
+        let cb = ()=> {
+            this.setState({startup: this.state.startup+5})
+            this.updateCanvas();
+            console.log(this.state.startup);
+            if (this.state.startup <= 100) {
+                setTimeout(cb, 30);
+            }
+        }
+        setTimeout(cb, 30);
     }
 
 
@@ -59,6 +72,8 @@ export default class SystemCanvas extends React.Component {
 
     updateCanvas() {
         let ctx = this.canvas.getContext('2d');
+
+        this.state.model.startup = this.state.startup;
         this.state.model.clientSize = {width: this.props.width, height: this.props.height};
         this.state.model.backgroundColor = this.state.backgroundColor;
         this.state.model.drawCanvas(ctx);

@@ -58,8 +58,9 @@ export default class ModelController {
     }
 
     deleteConnection(processUrl, connection) {
+        console.log("ModelController.deleteConnection(", processUrl, connection, ")");
         return deleteConnection(processUrl, connection).then((info) => {
-            // console.log('deleted: ', info);
+            console.log('deleted: ', info);
             this.update();
             return info;
         });

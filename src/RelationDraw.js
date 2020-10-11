@@ -80,43 +80,46 @@ export function drawECBindConnection(drawer, ctx, vm) {
     if (vm.type === 'ec') {
         drawer.viewModels.forEach((tgt) => {
             if (tgt.type === 'container_operation' || tgt.type === 'operation') {
-                vm.model.model.boundOperations.forEach((op)=> {
-                    let fullName = op.fullName;
+                if (vm.model.model.boundOperations) {
 
-                    if ((tgt.type === 'operation' && fullName === tgt.model.model.fullName) ||
-                        (tgt.type === 'container_operation' && fullName === tgt.model.model.fullName)) { //} + ':' + tgt.model.model.instanceName)) {
+                    vm.model.model.boundOperations.forEach((op) => {
+                        let fullName = op.fullName;
 
-                        drawLine(ctx, startPos, tgt.position, color);
+                        if ((tgt.type === 'operation' && fullName === tgt.model.model.fullName) ||
+                            (tgt.type === 'container_operation' && fullName === tgt.model.model.fullName)) { //} + ':' + tgt.model.model.instanceName)) {
 
-                        let line = {
-                            x0: startPos.x, y0: startPos.y,
-                            x1: tgt.position.x, y1: tgt.position.y
-                        };
+                            drawLine(ctx, startPos, tgt.position, color);
 
-                        let point = crossingPointLineAndEllipse(line, {
-                            width: tgt.size.width,
-                            height: tgt.size.height
-                        }, 8);
+                            let line = {
+                                x0: startPos.x, y0: startPos.y,
+                                x1: tgt.position.x, y1: tgt.position.y
+                            };
 
-                        let dx = line.x0 - line.x1;
-                        let dy = -(line.y0 - line.y1) ;
-                        let theta = Math.atan2(dy, dx);
+                            let point = crossingPointLineAndEllipse(line, {
+                                width: tgt.size.width,
+                                height: tgt.size.height
+                            }, 8);
 
-                        let points = [
-                            {x: -10, y: 0},
-                            {x: 7, y: 6},
-                            {x: 7, y: -6}
-                        ];
+                            let dx = line.x0 - line.x1;
+                            let dy = -(line.y0 - line.y1);
+                            let theta = Math.atan2(dy, dx);
 
-                        let newPoints = points.map(
-                            (p) => {
-                                return translate(rotate(p, -theta), point);
-                            }
-                        )
-                        drawPolygon(ctx, newPoints, color);
+                            let points = [
+                                {x: -10, y: 0},
+                                {x: 7, y: 6},
+                                {x: 7, y: -6}
+                            ];
 
-                    }
-                });
+                            let newPoints = points.map(
+                                (p) => {
+                                    return translate(rotate(p, -theta), point);
+                                }
+                            )
+                            drawPolygon(ctx, newPoints, color);
+
+                        }
+                    });
+                }
             }
         });
     }
@@ -204,7 +207,8 @@ export function drawTopicConnection(drawer, ctx, vm) {
         drawer.viewModels.forEach((tgt) => {
             if ( (tgt.type === 'container_operation' || tgt.type === 'operation' ) && vm.model.model.connections) {
                 // Topicの出力からOperationに対して線を引く
-                vm.model.model.connections.output.forEach((c)=>{
+                if (vm.model.model.connections.output) {
+                vm.model.model.connections.output.forEach((c) => {
                     if ((tgt.type === 'operation' && c.input.info.fullName === tgt.model.model.fullName) ||
                         (tgt.type === 'container_operation' && c.input.info.fullName === tgt.model.model.fullName)) { // + ':' + tgt.model.model.instanceName)) {
                         drawLine(ctx, vm.position, tgt.position, color);
@@ -228,7 +232,7 @@ export function drawTopicConnection(drawer, ctx, vm) {
 
 
                         let dx = line.x0 - line.x1;
-                        let dy = -(line.y0 - line.y1) ;
+                        let dy = -(line.y0 - line.y1);
                         let theta = Math.atan2(dy, dx);
 
                         let points = [
@@ -245,7 +249,7 @@ export function drawTopicConnection(drawer, ctx, vm) {
                         drawPolygon(ctx, newPoints, color);
 
 
-                        let p = translate(rotate({x:20, y:-20}, -theta), point);
+                        let p = translate(rotate({x: 20, y: -20}, -theta), point);
                         drawText(ctx, c.input.target.name, p, color);
 
                         //if (c.type === 'event') {
@@ -258,6 +262,7 @@ export function drawTopicConnection(drawer, ctx, vm) {
 
                     }
                 });
+                }
             }
         });
     }
@@ -342,7 +347,7 @@ export function drawFSMBindECConnection(drawer, ctx, vm) {
         drawer.viewModels.forEach((tgt) => {
             if (tgt.type === 'ec') {
                 vm.model.model.states.forEach((state, i)=> {
-                    console.log('state:', state);
+                    // console.log('state:', state);
                     if (state.boundECStart !== undefined) {
                         state.boundECStart.forEach((ec, j) => {
                             let pos = startPos;

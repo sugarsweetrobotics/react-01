@@ -45,10 +45,10 @@ export default class FSMSidePanel extends React.Component {
         let contentIsActive = this.state.contentIsActive;
         return (
             <div className="process-in-sidemenu" style={{textAlign: "left"}} >
-                <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
+                <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10, color: "white"}}>
                     <Accordion.Title index={0}
                                      active={titleIsActive}
-                                     style={{padding: 0, marginBottom: 0}}
+                                     style={{padding: 0, marginBottom: 0, color: "#6cf17e"}}
                                      onClick={()=>{this.setState({titleIsActive: !this.state.titleIsActive})}}
                                      draggable={true}
                                      onDragStart={(e) => {
@@ -72,7 +72,7 @@ export default class FSMSidePanel extends React.Component {
                             <Accordion.Title index={1}
                                              active={contentIsActive}
                                              onClick={()=>{this.setState({contentIsActive: !this.state.contentIsActive})}}
-                                             style={{padding: 0, marginBottom: 0}}
+                                             style={{padding: 0, marginBottom: 0, color: "#6cf17e"}}
                             >
                                 <Icon name="dropdown"></Icon>
                                 {"States"}
