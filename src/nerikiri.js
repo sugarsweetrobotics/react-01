@@ -24,6 +24,24 @@ export function urlToPort(url) {
 }
 
 export default function process(url) {
+
+    let api = 'httpBroker/';
+
+    let operationListInfos = async() => {
+        let f = await fetch(url + api + 'operations/', {method: 'GET', mode: 'cors'});
+        return f.json();
+    };
+
+    let operationInfo = async(fullName) => {
+        let f = await fetch(url + api + 'operations/' + fullName, {method: 'GET', mode: 'cors'});
+        return f.json();
+    };
+
+    let operationFullInfo = async(fullName) => {
+        let f = await fetch(url + api + 'operations/' + fullName + '/fullInfo', {method: 'GET', mode: 'cors'});
+        return f.json();
+    };
+
     return {
         url: () => { return url; },
 
@@ -50,28 +68,43 @@ export default function process(url) {
 
 
         info: async () => {
-            let f = await fetch(url + 'process/info/', {method: 'GET', mode: 'cors'});
+            let f = await fetch(url + api + 'info/', {method: 'GET', mode: 'cors'});
             return f.json();
         },
 
-        operationInfos: async() => {
-            let f = await fetch(url + 'process/operations/', {method: 'GET', mode: 'cors'});
+        fullInfo: async () => {
+            let f = await fetch(url + api + 'fullInfo/', {method: 'GET', mode: 'cors'});
             return f.json();
+        },
+
+        operationListInfos: operationListInfos,
+
+        operationInfo: operationInfo,
+
+        operationInfos: async() => {
+            return operationListInfos().then(async (oinfos) => {
+                return Promise.all(
+                    oinfos.map((oinfo) => {
+                        let fullInfo = operationFullInfo(oinfo.fullName);
+                        return fullInfo;
+                    })
+                );
+            });
         },
 
         containerInfos: async() => {
-            let f = await fetch(url + 'process/containers/', {method: 'GET', mode: 'cors'});
+            let f = await fetch(url + api + 'containers/', {method: 'GET', mode: 'cors'});
             return f.json();
         },
 
         containerOperationInfos: async(containerInfo) => {
-            let f = await fetch(url + 'process/containers/' + containerInfo.fullName + '/operations/', {method: 'GET', mode: 'cors'});
+            let f = await fetch(url + api + 'containers/' + containerInfo.fullName + '/operations/', {method: 'GET', mode: 'cors'});
             return f.json();
         },
 
         connectionInfos: async(operationInfo) => {
             if (typeof(operationInfo) === 'undefined') {
-                let f = await fetch(url + 'process/connections/', {
+                let f = await fetch(url + api + 'connections/', {
                     method: 'GET',
                     mode: 'cors'
                 });
@@ -80,15 +113,18 @@ export default function process(url) {
 
             //console.log(operationInfo);
             if (operationInfo.ownerContainerInstanceName === undefined) {
-                let f = await fetch(url + 'process/operations/' + operationInfo.fullName + '/connections/', {
+                let f = await fetch(url + api + 'operations/' + operationInfo.fullName + '/inlets/', {
                     method: 'GET',
                     mode: 'cors'
+                });
+                f.then((info) => {
+                    // ここでinletのconnection情報を収集して整理
                 });
                 let v = f.json();
 
                 return v;
             } else {
-                let f = await fetch(url + 'process/containers/' + operationInfo.ownerContainerInstanceName + '/operations/' + operationInfo.instanceName + '/connections/', {
+                let f = await fetch(url + api + 'containers/' + operationInfo.ownerContainerInstanceName + '/operations/' + operationInfo.instanceName + '/connections/', {
                     method: 'GET',
                     mode: 'cors'
                 });
@@ -102,7 +138,7 @@ export default function process(url) {
                 return {}
             }
 
-            let f = await fetch(url + 'process/topics/' + topicInfo.fullName + '/connections/', {
+            let f = await fetch(url + api + 'topics/' + topicInfo.fullName + '/connections/', {
                 method: 'GET',
                 mode: 'cors'
             });
@@ -113,14 +149,14 @@ export default function process(url) {
         ecInfos: async(ecInfo) => {
 
             if (ecInfo === undefined) {
-                let f = await fetch(url + 'process/ecs/', {
+                let f = await fetch(url + api + '/ecs/', {
                     method: 'GET',
                     mode: 'cors'
                 });
                 return f.json();
             }
 
-            let f = await fetch(url + 'process/ecs/' + ecInfo.fullName + "/", {
+            let f = await fetch(url + api + 'ecs/' + ecInfo.fullName + "/", {
                 method: 'GET',
                 mode: 'cors'
             });
@@ -129,7 +165,7 @@ export default function process(url) {
         },
 
         brokerInfos: async() => {
-            let f = await fetch(url + "process/brokers/", {
+            let f = await fetch(url + api + "brokers/", {
                 method: 'GET',
                 mode: 'cors'
             });
@@ -137,7 +173,7 @@ export default function process(url) {
         },
 
         topicInfos: async() => {
-            let f = await fetch(url + "process/topics/", {
+            let f = await fetch(url + api + "topics/", {
                 method: 'GET',
                 mode: 'cors'
             });
@@ -145,7 +181,7 @@ export default function process(url) {
         },
 
         fsmInfos: async() => {
-            let f = await fetch(url + "process/fsms/", {
+            let f = await fetch(url + api + "fsms/", {
                 method: 'GET',
                 mode: 'cors'
             });
@@ -153,7 +189,7 @@ export default function process(url) {
         },
 
         boundOperationInfos: async(ecInfo) => {
-            let f = await fetch(url + 'process/ecs/' + ecInfo.fullName + "/operations/", {
+            let f = await fetch(url + api + 'ecs/' + ecInfo.fullName + "/operations/", {
                 method: 'GET',
                 mode: 'cors'
             });
@@ -161,7 +197,7 @@ export default function process(url) {
         },
 
         callbackInfo: async(info) => {
-            let f = await fetch( url + 'process/callbacks/', {
+            let f = await fetch( url + api + 'callbacks/', {
                 method: 'GET',
                 mode: 'cors'
             });
@@ -180,14 +216,17 @@ export async function updateProps(proc) {
         proc.operationInfos().then((infos)=>{
             proc.props.operations = infos;
             let ps = infos.map((info) => {
-                info.connections = {
-                    input: [],
-                    output: []
-                };
-                return proc.connectionInfos(info).then((cis) => {
-                    info.connections = cis;
-                    return cis;
-                });
+                console.log('operation_full:', info);
+
+                //info.connections = {
+                //    inlet: [],
+                //    outlet: []
+                //};
+                //return proc.connectionInfos(info).then((cis) => {
+                //    info.connections = cis;
+                //    return cis;
+                //});
+                return info;
             });
             return Promise.all(ps);
         }),
@@ -210,8 +249,8 @@ export async function updateProps(proc) {
             proc.props.topics = infos;
             let ps = infos.map((info) => {
                 info.connections = {
-                    input: [],
-                    output: []
+                    inlet: [],
+                    outlet: []
                 };
                 return proc.topicConnectionInfos(info).then((cis) => {
                     info.connections = cis;
@@ -239,7 +278,7 @@ export async function updateProps(proc) {
             return Promise.all(ps);
         }),
         proc.brokerInfos().then((infos)=>{ proc.props.brokers = infos; return infos; }),
-        proc.callbackInfo().then((info)=>{ proc.props.callbacks = info; return info; }),
+        //proc.callbackInfo().then((info)=>{ proc.props.callbacks = info; return info; }),
         ]
     );
     return p;
