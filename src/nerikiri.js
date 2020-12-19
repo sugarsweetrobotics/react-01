@@ -86,7 +86,11 @@ export default function process(url) {
                 return Promise.all(
                     oinfos.map((oinfo) => {
                         let fullInfo = operationFullInfo(oinfo.fullName);
-                        return fullInfo;
+
+                        return fullInfo.then((i) => {
+                            console.log('fullInfo:', i);
+                            return i;
+                        });
                     })
                 );
             });
@@ -117,9 +121,10 @@ export default function process(url) {
                     method: 'GET',
                     mode: 'cors'
                 });
-                f.then((info) => {
-                    // ここでinletのconnection情報を収集して整理
-                });
+                console.log('f is ', f);
+                //f.then((info) => {
+                //    // ここでinletのconnection情報を収集して整理
+                //});
                 let v = f.json();
 
                 return v;
@@ -263,10 +268,10 @@ export async function updateProps(proc) {
             proc.props.fsms = infos;
 
         }),
-        proc.connectionInfos().then((infos)=>{
-            proc.props.connections = infos; return infos;
-
-        }),
+        //proc.connectionInfos().then((infos)=>{
+        //    proc.props.connections = infos; return infos;
+//
+ //       }),
         proc.ecInfos().then((infos)=>{
             let ps = infos.map((info) => {
                 return proc.boundOperationInfos(info).then((opInfos)=> {

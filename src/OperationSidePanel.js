@@ -25,40 +25,43 @@ export default class OperationSidePanel extends React.Component {
         );
     }
 
-    inputConnectionPanels(key) {
-        if (this.props.operation.connections === undefined) return null;
-        if (this.props.operation.connections.input[key].length === 0) return (<div style={{marginLeft: 10}}>[]</div>)
-        return this.props.operation.connections.input[key].map((c, i) => {
+    inputConnectionPanels(key, i) {
+        if (this.props.operation.inlets === undefined) return null;
+        if (this.props.operation.inlets[i].connections.length === 0) return (<div style={{marginLeft: 10}}>[]</div>)
+        return this.props.operation.inlets[i].connections.map((c, j) => {
             return (
                 <ConnectionSidePanel process={this.state.process} connection={c} operation={this.props.operation}
-                                     key={i}/>);
+                                     key={j}/>);
         });
     }
 
     inputConnectionPanelsAll() {
-        if (this.props.operation.connections === undefined) return null;
+        if (this.props.operation.inlets === undefined) return null;
 
-        if (this.props.operation.connections.input.length === 0) return (<div style={{marginLeft: 10}}>[]</div>)
+        if (this.props.operation.inlets.length === 0) return (<div style={{marginLeft: 10}}>[]</div>)
 
         let cons = [];
         let i = 0;
-        for(let key in this.props.operation.connections.input) {
+        this.props.operation.inlets.forEach((k, i) => {
+//        for(let key in this.props.operation.inlets) {
+            let key = k.name;
             cons.push(
                 (<div style={{marginLeft: 10}} key={i}>
                     <div>{key}</div>
-                    <div>{this.inputConnectionPanels(key)}</div>
+                    <div>{this.inputConnectionPanels(key, i)}</div>
                 </div>)
             );
             i++;
-        }
+        });
         return cons;
     }
 
     outputConnectionPanelsAll() {
-        if (this.props.operation.connections === undefined) return null;
+        if (this.props.operation.outlet=== undefined) return null;
+        if (this.props.operation.outlet.connections === undefined) return null;
 
-        if (this.props.operation.connections.output.length === 0) return (<div style={{marginLeft: 10}}>[]</div>)
-        return this.props.operation.connections.output.map((c, i) => {
+        if (this.props.operation.outlet.connections.length === 0) return (<div style={{marginLeft: 10}}>[]</div>)
+        return this.props.operation.outlet.connections.map((c, i) => {
             return (<ConnectionSidePanel process={this.state.process} connection={c} operation={this.props.operation} key={i}/>);
         });
     }

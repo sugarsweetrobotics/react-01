@@ -6,11 +6,13 @@ export function drawOperationConnection(drawer, ctx, vm) {
     let color = '#ff0000';
     if (vm.type === 'operation' || vm.type === 'container_operation') {
         drawer.viewModels.forEach((tgt) => {
-            if ( (tgt.type === 'container_operation' || tgt.type === 'operation' || tgt.type === 'topic') && vm.model.model.connections) {
-                vm.model.model.connections.output.forEach((c)=>{
-                    if ((tgt.type === 'operation' && c.input.info.fullName === tgt.model.model.fullName) ||
-                        (tgt.type === 'topic' && c.input.info.fullName === tgt.model.model.fullName) ||
-                        (tgt.type === 'container_operation' && c.input.info.fullName === tgt.model.model.fullName)) { // Name + ':' + tgt.model.model.instanceName)) {
+            console.log('tgt: ', tgt, 'vm, ', vm);
+            if ( (tgt.type === 'container_operation' || tgt.type === 'operation' || tgt.type === 'topic') && vm.model.model.outlet.connections) {
+                vm.model.model.outlet.connections.forEach((c)=>{
+                    //console.log('c:', c);
+                    if ((tgt.type === 'operation' && c.inlet.ownerFullName === tgt.model.model.fullName) ||
+                        (tgt.type === 'topic' && c.inlet.ownerFullName === tgt.model.model.fullName) ||
+                        (tgt.type === 'container_operation' && c.inlet.ownerFullName === tgt.model.model.fullName)) { // Name + ':' + tgt.model.model.instanceName)) {
                         drawLine(ctx, vm.position, tgt.position, color);
                         let line = {
                             x0: vm.position.x, y0: vm.position.y,
@@ -63,7 +65,7 @@ export function drawOperationConnection(drawer, ctx, vm) {
                         }
 
                         let p = translate(rotate({x:20, y:-20}, -theta), point);
-                        drawText(ctx, c.input.target.name, p, color);
+                        drawText(ctx, c.inlet.name, p, color);
 
                     }
                 });

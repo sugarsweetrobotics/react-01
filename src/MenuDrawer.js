@@ -754,12 +754,12 @@ function drawOperationSpecialMenu(drawer, ctx, vm, radius, color, progress, menu
 
                 conTitlePos.y += 40;
                 //console.log('Drawing Connections...', vm);
-                for (let i = 0; vm.model.model.connections && i < vm.model.model.connections.output.length; ++i) {
-                    let con = vm.model.model.connections.output[i];
+                for (let i = 0; vm.model.model.outlet.connections && i < vm.model.model.outlet.connections.length; ++i) {
+                    let con = vm.model.model.outlet.connections[i];
                     //let w = ctx.measureText(con.name).width;
 
-                    //console.log('Con:', con);
-                    let fullName = con.input.info.fullName;
+                    console.log('Con:', con);
+                    let fullName = con.inlet.fullName;
                     drawRect(ctx, {
                         x: vm.position.x + radius + 120 + 140,
                         y: conTitlePos.y - 5
@@ -970,12 +970,15 @@ function drawOperationSpecialMenu(drawer, ctx, vm, radius, color, progress, menu
 
         // ここは入力ボタンの分！個数に応じて表示場所を調整している分！
         if (!vm.model.model.defaultArg) {
-            console.error('defaultArg is undefined:', vm);
-            return;
+            // console.error('defaultArg is undefined:', vm);
+           // return;
         }
-        let numOfArgs = Object.keys(vm.model.model.defaultArg).length;
+        let numOfArgs = vm.model.model.inlets.length;
         let startAngle = Math.PI - Math.PI / 16 * numOfArgs;
-        for(let arg in vm.model.model.defaultArg) {
+        for(let inlet of vm.model.model.inlets) {
+            let arg = inlet.defaultValue;
+            let argName = inlet.name;
+            console.log('arg is ', inlet);
             if (arg.length === 0) continue;
             let input_icon_center = {
                 x: vm.position.x - (vm.size.width / 2 + 90),
@@ -992,7 +995,7 @@ function drawOperationSpecialMenu(drawer, ctx, vm, radius, color, progress, menu
                 x: vm.position.x + (vm.size.width / 2 + 90) * Math.cos(theta),
                 y: vm.position.y + (vm.size.width / 2 + 90) * Math.sin(theta)
             }
-            drawText(ctx, arg, textPosition, color);
+            drawText(ctx, argName, textPosition, color);
             startAngle = endAngle;
         }
     }
