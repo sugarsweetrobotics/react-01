@@ -57,7 +57,7 @@ export default class SystemCanvas extends React.Component {
         let cb = ()=> {
             this.setState({startup: this.state.startup+5})
             this.updateCanvas();
-            console.log(this.state.startup);
+            // console.log(this.state.startup);
             if (this.state.startup <= 100) {
                 setTimeout(cb, 30);
             }

@@ -88,7 +88,7 @@ export default function process(url) {
                         let fullInfo = operationFullInfo(oinfo.fullName);
 
                         return fullInfo.then((i) => {
-                            console.log('fullInfo:', i);
+                            // console.log('fullInfo:', i);
                             return i;
                         });
                     })
@@ -121,7 +121,7 @@ export default function process(url) {
                     method: 'GET',
                     mode: 'cors'
                 });
-                console.log('f is ', f);
+                // console.log('f is ', f);
                 //f.then((info) => {
                 //    // ここでinletのconnection情報を収集して整理
                 //});
@@ -221,7 +221,7 @@ export async function updateProps(proc) {
         proc.operationInfos().then((infos)=>{
             proc.props.operations = infos;
             let ps = infos.map((info) => {
-                console.log('operation_full:', info);
+               //  console.log('operation_full:', info);
 
                 //info.connections = {
                 //    inlet: [],
@@ -236,6 +236,7 @@ export async function updateProps(proc) {
             return Promise.all(ps);
         }),
         proc.containerInfos().then((infos)=> {
+            /*
             let ps = infos.map((info) => {
                 return proc.containerOperationInfos(info).then((opInfos) => {
                     info.operations = opInfos;
@@ -247,8 +248,11 @@ export async function updateProps(proc) {
                     });
                 });
             });
+
+             */
             proc.props.containers = infos;
-            return Promise.all(ps);
+            //return Promise.all(ps);
+            return infos;
         }),
         proc.topicInfos().then((infos) => {
             proc.props.topics = infos;
@@ -347,9 +351,10 @@ export async function invokeOperation(procUrl, op) {
         // if (op.ownerContainerInstanceName) {
         //    instanceName = op.ownerContainerInstanceName + ':' + instanceName;
         //}
-        let f = await fetch( procUrl + 'process/operations/' + fullName + '/', {
-            method: 'GET',
+        let f = await fetch( procUrl + 'httpBroker/operations/' + fullName + '/invoke', {
+            method: 'PUT',
             mode: 'cors',
+            body: '{}'
         });
         return f.json();
     }
@@ -361,7 +366,7 @@ export async function executeOperation(procUrl, op) {
         //if (op.ownerContainerInstanceName) {
         //    instanceName = op.ownerContainerInstanceName + ':' + instanceName;
         //}
-        let f = await fetch( procUrl + 'process/operations/' + fullName + '/execution/', {
+        let f = await fetch( procUrl + 'httpBroker/operations/' + fullName + '/execute', {
             method: 'PUT',
             mode: 'cors',
             body: '{}'

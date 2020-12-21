@@ -6,7 +6,7 @@ export function drawOperationConnection(drawer, ctx, vm) {
     let color = '#ff0000';
     if (vm.type === 'operation' || vm.type === 'container_operation') {
         drawer.viewModels.forEach((tgt) => {
-            console.log('tgt: ', tgt, 'vm, ', vm);
+            // console.log('tgt: ', tgt, 'vm, ', vm);
             if ( (tgt.type === 'container_operation' || tgt.type === 'operation' || tgt.type === 'topic') && vm.model.model.outlet.connections) {
                 vm.model.model.outlet.connections.forEach((c)=>{
                     //console.log('c:', c);

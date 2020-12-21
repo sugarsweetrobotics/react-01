@@ -15,7 +15,7 @@ export default class ConnectionSidePanel extends React.Component {
 
 
     render() {
-        console.log('Connection:', this.state.connection);
+        // console.log('Connection:', this.state.connection);
         let instanceName = this.state.connection.fullName;
         let titleIsActive = this.state.titleIsActive;
         let connectionType = this.state.connection.type;

@@ -978,7 +978,7 @@ function drawOperationSpecialMenu(drawer, ctx, vm, radius, color, progress, menu
         for(let inlet of vm.model.model.inlets) {
             let arg = inlet.defaultValue;
             let argName = inlet.name;
-            console.log('arg is ', inlet);
+            // console.log('arg is ', inlet);
             if (arg.length === 0) continue;
             let input_icon_center = {
                 x: vm.position.x - (vm.size.width / 2 + 90),
