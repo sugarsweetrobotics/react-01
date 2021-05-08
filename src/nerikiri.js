@@ -1,4 +1,7 @@
 
+var fetch = require('node-fetch');
+
+
 export function urlToAddr(url) {
    // let buf = url;
     if (url.startsWith('http://')) {
@@ -23,12 +26,129 @@ export function urlToPort(url) {
     return parseInt(url.slice(idx+1));
 }
 
+/**
+ *
+ * @param containerInfo
+ * @param operations
+ * @returns {{operations, info}}
+ */
+function container(url, containerInfo, operations) {
+    return {
+        url: url,
+        info: containerInfo,
+        operations: operations,
+        isOwn : (operation) => {
+            return ownerContainerName(operation.info) == containerInfo.fullName;
+        }
+    };
+}
+
+
+
+function operation(url, operationInfo) {
+    return {
+        url: url,
+        info: operationInfo
+    };
+}
+
+function pureOperationTypeName(info) {
+    console.log('pureOperationTypeName:', info.typeName);
+    let tokens = info.typeName.split(':');
+    if (tokens.length >= 3) {
+        return tokens[tokens.length-2];
+    }
+    return info.typeName;
+}
+
+function ownerContainerName(info) {
+    let tokens = info.typeName.split(':');
+    if (tokens.length >= 2) {
+        return tokens[0];
+    }
+    return '';
+}
+
+export function process_api(url) {
+
+    let api = 'httpBroker/';
+    let fetchJson = async (addr) => {
+        return (await fetch(url + api + addr, {method: 'GET', mode: 'cors'})).json();
+    };
+
+    return {
+        process: async() => {
+            let info = await fetchJson('fullInfo');
+            return {
+                url: ()=> {
+                    return url;
+                },
+                operations: info.operations.filter(opInfo => {
+                    return !pureOperationTypeName(opInfo).startsWith('_') && !(opInfo.typeName === 'Topic');
+                }).map(opInfo => { return operation(url, opInfo); }),
+                containers: info.containers.filter(cInfo => {
+                    return !cInfo.typeName.startsWith('_');
+                }).map(cInfo => {
+                    return container(url, cInfo, info.operations.filter((oInfo) => {
+                        return ownerContainerName(oInfo) == cInfo.fullName;
+                    }));
+                }),
+                topics:[],
+                fsms:[],
+                ecs:[],
+                brokers:[],
+                connections:[]
+            }
+        },
+
+        containers : async () => {
+            return (await fetchJson('containers')).filter((cinfo) => {
+                return !cinfo.typeName.startsWith('_');
+            }).map(async (cinfo) => {
+                return container(cinfo, (await fetchJson('operations')).filter((oinfo) => {
+                    return ownerContainerName(oinfo) == cinfo.fullName;
+                }));
+            })
+        },
+
+        operations : async () => {
+            let f = await fetch(url + api + 'operations/', {method: 'GET', mode: 'cors'});
+            return await f.json().filter((oinfo) => {
+                return !pureOperationTypeName(oinfo).startsWith('_');
+            }).map((oinfo) => {
+                return operation(oinfo);
+            })
+        }
+    };
+}
+
 export default function process(url) {
 
     let api = 'httpBroker/';
+    let containers = async() => {
+        let f = await fetch(url + api + 'containers/', {method: 'GET', mode: 'cors'});
+        let cinfos = await f.json();
+        let of = await fetch(url + api + 'operations/', {method: 'GET', mode: 'cors'});
+        let oinfos = await of.json();
+        return cinfos.filter((cinfo)=>{
+            return !cinfo.typeName.startsWith('_');
+        }).map((cinfo)=> {
+            return container(cinfo, oinfos.filter((oinfo)=> { return ownerContainerName(oinfo) == cinfo.fullName; }));
+        })
+    };
+
+    let operations = async() => {
+        let f = await fetch(url + api + 'operations/', {method: 'GET', mode: 'cors'});
+        let oinfos = await f.json();
+        return oinfos.filter((oinfo)=>{
+            return !pureOperationTypeName(oinfo).startsWith('_');
+        }).map((oinfo)=> {
+            return operation(oinfo);
+        })
+    };
 
     let operationListInfos = async() => {
-        let f = await fetch(url + api + 'operations/', {method: 'GET', mode: 'cors'});
+        let f = await fetch(url + api + 'operations', {method: 'GET', mode: 'cors'});
         return f.json();
     };
 
@@ -76,6 +196,9 @@ export default function process(url) {
             let f = await fetch(url + api + 'fullInfo/', {method: 'GET', mode: 'cors'});
             return f.json();
         },
+
+        containers: containers,
+        operations: operations,
 
         operationListInfos: operationListInfos,
 
@@ -345,34 +468,22 @@ export async function changeECState(procUrl, ec, state) {
     }
 }
 
-export async function invokeOperation(procUrl, op) {
-    if (procUrl) {
-        let fullName = op.fullName;
-        // if (op.ownerContainerInstanceName) {
-        //    instanceName = op.ownerContainerInstanceName + ':' + instanceName;
-        //}
-        let f = await fetch( procUrl + 'httpBroker/operations/' + fullName + '/invoke', {
-            method: 'PUT',
-            mode: 'cors',
-            body: '{}'
-        });
-        return f.json();
-    }
+export async function invokeOperation(op) {
+    console.debug('nerikiri.invokeOperation(', op, ')');
+    return fetch( op.url + 'httpBroker/operations/' + op.info.fullName + '/invoke', {
+        method: 'PUT',
+        mode: 'cors',
+        body: '{}'
+    }).then((f) => f.json());
 }
 
-export async function executeOperation(procUrl, op) {
-    if (procUrl) {
-        let fullName = op.fullName;
-        //if (op.ownerContainerInstanceName) {
-        //    instanceName = op.ownerContainerInstanceName + ':' + instanceName;
-        //}
-        let f = await fetch( procUrl + 'httpBroker/operations/' + fullName + '/execute', {
-            method: 'PUT',
-            mode: 'cors',
-            body: '{}'
-        });
-        return f.json();
-    }
+export async function executeOperation(op) {
+    console.debug('nerikiri.executeOperation(', op, ')');
+    return fetch( op.url + 'httpBroker/operations/' + op.info.fullName + '/execute', {
+        method: 'PUT',
+        mode: 'cors',
+        body: '{}'
+    }).then((f)=>f.json());
 }
 
 

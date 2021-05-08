@@ -14,7 +14,10 @@ export default class SystemEditor extends React.Component {
 
     pack() {
         if (this.frame !== null)
-        this.setState({clientWidth: this.frame.clientWidth, clientHeight: this.frame.clientHeight})
+        this.setState({
+            clientWidth: this.frame.clientWidth,
+            clientHeight: this.frame.clientHeight
+        })
     }
 
     componentDidMount() {

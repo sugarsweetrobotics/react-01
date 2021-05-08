@@ -1,6 +1,6 @@
 
 
-import process, {changeECState, changeFSMState, deleteConnection, updateProps, invokeOperation, executeOperation, bindOperation, unbindOperation} from './nerikiri';
+import process, {process_api, changeECState, changeFSMState, deleteConnection, updateProps, invokeOperation, executeOperation, bindOperation, unbindOperation} from './nerikiri';
 
 export default class ModelController {
 
@@ -14,6 +14,9 @@ export default class ModelController {
     }
 
     loadProcess(url, cb) {
+        this.pushProcess({url: ()=> url});
+        this.update().then(cb);
+        /*
         let p = process(url);
         let promise = updateProps(p);
         if (cb) {
@@ -21,6 +24,8 @@ export default class ModelController {
         }
         this.pushProcess(p);
         return this;
+
+         */
     }
 
     getProcesses() {
@@ -40,12 +45,19 @@ export default class ModelController {
         this.processes.push(proc);
     }
 
-    update() {
+    async update() {
+        let procs = this.processes;
+        this.processes = [];
+        procs.forEach(async (proc) => {
+            this.processes.push(await process_api(proc.url()).process());
+        });
+        return this;
+        /*
         let procs = this.processes;
         this.processes = [];
         let promises = []
         procs.forEach((proc) => {
-            let p = process(proc.url());
+            let p = process_api(proc.url());
             promises.push(updateProps(p));
             this.pushProcess(p);
         });
@@ -55,6 +67,8 @@ export default class ModelController {
             console.log('ModelController task: onUpdate callback done.')
             return ret;
         });
+
+         */
     }
 
     deleteConnection(processUrl, connection) {
@@ -83,23 +97,17 @@ export default class ModelController {
         })
     }
 
-    async invokeOperation(processUrl, op) {
-        // console.log('ModelController.invokeOperation:', processUrl, op);
-        return await invokeOperation(processUrl, op).then((info) => {
-            console.log('nerikiri.invokeOperation done:', info);
-            //return this.update();
-            return info;
-        }).catch((error) => {
-            console.log('nerikiri.invokeOperation failed:', error);
-        })
+    async invokeOperation(op) {
+        console.info('ModelController.invokeOperation:', op);
+        return await invokeOperation(op).catch((e)=> {
+            console.error('nerikiri.invokeOperation failed:', e); return undefined;
+        });
     }
 
-    executeOperation(processUrl, op) {
-        // console.log('ModelController.executeOperation:', processUrl, op);
-        return executeOperation(processUrl, op).then((info) => {
-            // console.log('OperationExecuted:', info);
-            this.update();
-            return info;
+    async executeOperation(op) {
+        console.info('ModelController.executeOperation:', op);
+        return await executeOperation(op).catch((e)=> {
+            console.error('nerikiri.executeOperation failed:', e); return undefined;
         })
     }
 

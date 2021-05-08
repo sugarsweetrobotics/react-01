@@ -8,7 +8,7 @@ import {Menu, Segment, Sidebar} from 'semantic-ui-react';
 import ModelController from "./ModelController";
 
 import Menubar from "./Menubar";
-import Sidemenu from "./Sidemenu";
+import Sidemenu from "./Sidemenu/Sidemenu";
 import MainContent from "./MainContent";
 
 

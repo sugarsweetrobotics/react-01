@@ -1,5 +1,5 @@
 import {drawEllipse, drawArc, drawRect, drawEllipseShadow, drawLine, drawPi, drawRectShadow, drawText} from "./Drawing";
-
+import {colors} from './VMColors';
 //import {drawVM, drawEC, drawECStates} from "./ObjectDrawer";
 //import {drawContainerConnection, drawECBindConnection, drawOperationConnection} from "./RelationDraw";
 import {offset} from "./Dimension";
@@ -148,22 +148,7 @@ export function drawSelectedVMMenu(drawer, ctx, vm) {
 function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgress) {
 
     let radius = Math.sqrt(vm.size.width * vm.size.width + vm.size.height * vm.size.height) / 2 + 10;
-    let color = '#00fcf4';
-    if (vm.type === 'ec') {
-        color = '#fff900';
-    } else if (vm.type === 'container') {
-        color = '#00fcf4';
-    } else if (vm.type === 'operation') {
-        color = '#ff0000';
-    } else if (vm.type === 'container_operation') {
-        color = '#00ff29';
-    } else if (vm.type === 'callback') {
-        color = '#ffffff';
-    } else if (vm.type === 'topic') {
-        color = '#ff0fff';
-    } else if (vm.type === 'fsm') {
-        color = '#a2ff00';
-    }
+    const color = colors[vm.model.info.className];
 
     {
         /// 内側のプログレスメーター部分の描画
@@ -212,8 +197,8 @@ function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgre
 
     {
         // インスタンス名を描画
-        let instanceName = vm.model.model.fullName;
-        if (vm.type === 'callback') instanceName = vm.model.model.name;
+        // let instanceName = vm.model.info.fullName;
+        //if (vm.type === 'callback') instanceName = vm.model.model.name;
 
         let arrow_progress = progress > 33 ? 100 : progress * 3;
         let base_progress = progress > 66 ? 100 : (progress - 33) * 3;
@@ -247,7 +232,7 @@ function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgre
                 y: instance_name_position.y - button_size /2 - 10
             };
 
-            let title = 'Operation';
+            let title = vm.type;
             if (vm.type === 'ec') title = 'ExecutionContext';
             else if (vm.type === 'container_operation') title = 'Container Operation';
             else if (vm.type === 'container') title = 'Container';
@@ -259,7 +244,7 @@ function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgre
                 y: rd * s + vm.position.y - 30
             }, color);
 
-            drawText(ctx, '"' + instanceName + '"', instance_name_position , color);
+            drawText(ctx, '"' + vm.model.info.fullName + '"', instance_name_position , color);
 
             // drawRect(ctx, close_button_position, {width: button_size, height: button_size}, color);
         }
@@ -1004,7 +989,7 @@ function drawOperationSpecialMenu(drawer, ctx, vm, radius, color, progress, menu
 
 function drawOperationControlMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress) {
 
-    if (vm.type === 'operation' || vm.type === 'container_operation'){
+    if (vm.type === 'Operation' || vm.type === 'container_operation'){
         /// 操作メニュー
 
         if (!menuParameter.operationControlButtonState) {

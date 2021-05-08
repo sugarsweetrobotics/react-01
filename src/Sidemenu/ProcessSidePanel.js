@@ -1,19 +1,19 @@
 import React from 'react';
 import {Icon, Accordion} from 'semantic-ui-react';
 import OperationSidePanel from "./OperationSidePanel";
-import ContainerSidePanel from "./ContainerSidePanel";
-import ConnectionSidePanel from "./ConnectionSidePanel";
-import ECSidePanel from "./ECSidePanel";
-import BrokerSidePanel from "./BrokerSidePanel";
-import CallbackSidePanel from "./CallbackSidePanel";
-import TopicSidePanel from "./ToipicSidePanel";
-import FSMSidePanel from "./FSMSidePanel";
+import ContainerSidePanel from "../ContainerSidePanel";
+import ConnectionSidePanel from "../ConnectionSidePanel";
+import ECSidePanel from "../ECSidePanel";
+import BrokerSidePanel from "../BrokerSidePanel";
+import CallbackSidePanel from "../CallbackSidePanel";
+import TopicSidePanel from "../ToipicSidePanel";
+import FSMSidePanel from "../FSMSidePanel";
 
 export default class ProcessSidePanel extends React.Component {
 
     constructor(props) {
         super(props);
-
+        console.log('ProcessSidePanel');
         this.state = {
             controller: props.controller,
             processIndex: -1,
@@ -32,14 +32,14 @@ export default class ProcessSidePanel extends React.Component {
 
     operationPanels() {
         let process = this.state.controller.getProcesses()[this.props.processIndex];
-        return process.props.operations.map((op, i) => {
+        return process.operations.map((op, i) => {
             return (<OperationSidePanel process={process} operation={op} ownerContainer={null} key={i}/>);
         });
     }
 
     containerPanels() {
         let process = this.state.controller.getProcesses()[this.props.processIndex];
-        return process.props.containers.map((c, i) => {
+        return process.containers.map((c, i) => {
             return (<ContainerSidePanel process={process} container={c} key={i}/>);
         });
     }
@@ -47,7 +47,7 @@ export default class ProcessSidePanel extends React.Component {
     connectionPanels() {
         // console.log('ProcessSidePanel.connectionPanels()');
         let process = this.state.controller.getProcesses()[this.props.processIndex];
-        return process.props.connections.map((c, i) => {
+        return process.connections.map((c, i) => {
             // console.log('connection:', c);
             return (<ConnectionSidePanel process={process} connection={c} key={i}/>);
         });
@@ -55,21 +55,21 @@ export default class ProcessSidePanel extends React.Component {
 
     ecPanels() {
         let process = this.state.controller.getProcesses()[this.props.processIndex];
-        return process.props.ecs.map((c, i) => {
+        return process.ecs.map((c, i) => {
             return (<ECSidePanel process={process} ec={c} key={i}/>);
         });
     }
 
     topicPanels() {
         let process = this.state.controller.getProcesses()[this.props.processIndex];
-        return process.props.topics.map((c, i) => {
+        return process.topics.map((c, i) => {
             return (<TopicSidePanel process={process} topic={c} key={i}/>);
         });
     }
 
     fsmPanels() {
         let process = this.state.controller.getProcesses()[this.props.processIndex];
-        return process.props.fsms.map((c, i) => {
+        return process.fsms.map((c, i) => {
             return (<FSMSidePanel process={process} fsm={c} key={i}/>);
         });
         return null;
@@ -78,14 +78,17 @@ export default class ProcessSidePanel extends React.Component {
     brokerPanels() {
         let process = this.state.controller.getProcesses()[this.props.processIndex];
         // console.log(process.props.brokers);
-        return process.props.brokers.map((c, i) => {
+        return process.brokers.map((c, i) => {
             return (<BrokerSidePanel process={process} broker={c} key={i}/>);
         });
     }
 
     callbackPanels() {
+        /*
         let process = this.state.controller.getProcesses()[this.props.processIndex];
         return (<CallbackSidePanel process={process} />);
+        
+         */
     }
 
     render() {

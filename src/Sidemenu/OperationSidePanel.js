@@ -1,7 +1,9 @@
 import React from 'react';
-import {valueIsError} from "./nerikiri";
+import {valueIsError} from "../nerikiri";
 import {Icon,  Accordion} from 'semantic-ui-react';
-import ConnectionSidePanel from "./ConnectionSidePanel";
+import ConnectionSidePanel from "../ConnectionSidePanel";
+
+import './sidemenu.css';
 
 export default class OperationSidePanel extends React.Component {
 
@@ -16,13 +18,6 @@ export default class OperationSidePanel extends React.Component {
             iconize: false,
             useFullName: props.useFullName
         };
-
-    }
-
-    renderIcon() {
-        return (
-            <Icon name="copy outline"></Icon>
-        );
     }
 
     inputConnectionPanels(key, i) {
@@ -66,53 +61,41 @@ export default class OperationSidePanel extends React.Component {
         });
     }
 
+    onDragStart(e) {
+        let data = {
+
+            type: this.props.operation.info.className === 'ContainerOperation' ? 'container_operation' : 'operation',
+            processUrl: this.state.process.url(),
+            model: this.props.operation,
+            ownerContainer: this.props.operation.info.className === 'ContainerOperation' ? this.props.ownerContainer : undefined
+        };
+        data = this.props.operation;
+        e.dataTransfer.setData("application/my-app", JSON.stringify(data));
+        e.dataTransfer.dropEffect = "move";
+    }
+
     render() {
-        let instanceName = this.props.operation.fullName;
+        let {titleIsActive, connectionIsActive, iconize} = this.state;
 
-        if (this.props.useFullName) {
+        if (this.state.iconize) return (<Icon name="copy outline"></Icon>);
+        let operation = this.props.operation;
+        if (!operation.info) return null;
 
-            if (this.props.operation.ownerContainerInstanceName !== undefined) {
-                instanceName = this.props.operation.ownerContainerInstanceName + ':' + instanceName;
-            }
-        }
-
-        let titleIsActive = this.state.titleIsActive;
-        let connectionIsActive = this.state.connectionIsActive;
-        if (this.state.iconize) {
-            return this.renderIcon();
-        }
+        let {fullName, className, inlets, outlet} = operation.info;
 
         return (
-            <div className="process-in-sidemenu" style={{textAlign: "left"}} >
-                <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
-                    <Accordion.Title index={0}
-                                     active={titleIsActive}
-                                     style={{padding: 0, marginBottom: 0, color: '#ff9174'}}
+            <div className="operation-in-sidemenu"  >
+                <Accordion className="operation-accordion">
+                    <Accordion.Title active={titleIsActive} draggable={true}
                                      onClick={()=>{this.setState({titleIsActive: !this.state.titleIsActive})}}
-                                     draggable={true}
-                                     onDragStart={(e) => {
-                                         let data = {
-                                             type: 'operation',
-                                             processUrl: this.state.process.url(),
-                                             model: this.props.operation,
-                                             //connections: this.props.operation.connections
-                                         };
-                                         if (this.state.operation.ownerContainerInstanceName !== undefined) {
-                                             data.type = 'container_operation';
-                                             data.ownerContainer = this.props.ownerContainer;
-                                         }
-                                         e.dataTransfer.setData("application/my-app", JSON.stringify(data));
-                                         e.dataTransfer.dropEffect = "move";
-                                     }}
-                    >
+                                     onDragStart={this.onDragStart.bind(this)} >
                         <Icon name="dropdown"></Icon>
-                        {instanceName}
+                        {fullName}
                     </Accordion.Title>
                     <Accordion.Content active={titleIsActive} style={{padding: 0, marginTop: 0}}>
                         {/* Connections */}
                         <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
-                            <Accordion.Title index={1}
-                                             active={connectionIsActive}
+                            <Accordion.Title active={connectionIsActive}
                                              onClick={()=>{this.setState({connectionIsActive: !this.state.connectionIsActive})}}
                                              style={{padding: 0, marginBottom: 0, color: '#ff9174'}}
                             >

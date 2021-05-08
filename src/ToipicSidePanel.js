@@ -1,7 +1,7 @@
 import React from 'react';
 import {valueIsError} from "./nerikiri";
 import {Icon,  Accordion} from 'semantic-ui-react';
-import OperationSidePanel from "./OperationSidePanel";
+import OperationSidePanel from "./Sidemenu/OperationSidePanel";
 import ConnectionSidePanel from "./ConnectionSidePanel";
 
 export default class TopicSidePanel extends React.Component {

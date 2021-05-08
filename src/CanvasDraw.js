@@ -21,6 +21,9 @@ import process, {connect, urlToAddr, urlToPort} from "./nerikiri";
 import {drawLine, drawArc, drawText} from "./Drawing";
 import {drawLeftSideMenu} from "./SideMenuDrawer";
 
+const sizes = {
+    'Operation': {width: 150, height: 70}
+}
 export let ViewModel = (m, pos) => {
     if (m.type === 'container') {
         return {
@@ -43,14 +46,7 @@ export let ViewModel = (m, pos) => {
             size: {width: 150, height: 150},
             model: m
         }
-    } else if (m.type === 'operation') {
-        return {
-            type: 'operation',
-            position: pos,
-            size: {width: 150, height: 70},
-            model: m
-        }
-    } else if (m.type === 'container_operation') {
+    }  else if (m.type === 'container_operation') {
         return {
             type: 'container_operation',
             position: pos,
@@ -71,6 +67,13 @@ export let ViewModel = (m, pos) => {
             size: {width: 150, height: 50},
             model: m
         }
+    } else {
+        return {
+            type: m.info.className,
+            position: pos,
+            size: sizes[m.info.className],
+            model: m
+        };
     }
 }
 /*
@@ -169,29 +172,21 @@ export class CanvasDraw {
         }
     }
 
+    /**
+     * キャンバスにD&Dされるとこの関数が呼ばれる
+     * @param model
+     * @param point
+     * @returns {CanvasDraw}
+     */
     addModel(model, point) {
         /// 重複登録を避ける
         for(let vm of this.viewModels) {
-            let m = vm.model;
-            if (model.type === m.type) {
-                if (model.type === 'operation' && m.model.fullName === model.model.fullName) {
-                    return this;
-                } else if (model.type === 'container_operation' && m.model.fullName === model.model.fullName) { //} && model.model.ownerContainerInstanceName === m.model.ownerContainerInstanceName) {
-                    return this;
-                } else if (model.type === 'container' && m.model.fullName === model.model.fullName) {
-                    return this;
-                } else if (model.type === 'ec' && m.model.fullName === model.model.fullName) {
-                    return this;
-                } else if (model.type === 'callback' && m.model.name === model.model.name) {
-                    return this;
-                } else if (model.type === "topic" && m.model.fullName === model.model.fullName) {
-                    return this;
-                } else if (model.type === "fsm" && m.model.fullName === model.model.fullName) {
-                    return this;
-                }
+            if (model.info.className === vm.model.info.className && model.info.fullName === vm.model.info.fullName) { // もし重複があったら何もしない
+                return this;
             }
         }
 
+        this.viewModels.push(ViewModel(model, point));
 
         if (model.type === 'container_operation') {
             this.addModel({
@@ -202,7 +197,6 @@ export class CanvasDraw {
         }
 
         //this.models.push(model);
-        this.viewModels.push(ViewModel(model, point));
 
         if (model.type === 'container') {
             // console.log(model);
@@ -713,50 +707,45 @@ export class CanvasDraw {
             this.controller.update();
         });
     }
-    onInvokeOperation(vm) {
-        //console.log('onInvokeOperation:', vm);
-        let processUrl = vm.processUrl;
-        return this.controller.invokeOperation(processUrl, vm.model).then((info) => {
+
+    async onInvokeOperation(model) {
+        console.info('CanvasDraw.onInvokeOperation:', model);
+        return await this.controller.invokeOperation(model).then((info) => {
             menuParameter.operationControlButtonState.outputLog = info;
-            //console.log("onInvokeOperation: done.");
+            console.log("onInvokeOperation: done. Return value is ", info);
             this.validate();
-            //console.log("onInvokeOperation: validated");
-            //this.controller.update();]
-            //console.log('updateCanvas/....');
             this.updateCanvas();
             return info;
         }).catch((error) => {
-            console.log('onInvokeOperation: error.', error);
+            console.error('CanvasDraw.onInvokeOperation: error.', error);
+            return undefined;
         });
     }
 
-    onCyclicOperation(vm) {
-        //console.log('onCyclicOperation:', vm);
-        let processUrl = vm.processUrl;
+    onCyclicOperation(model) {
+        console.info('CanvasDraw.onCyclicOperation:', model);
         let handler = () => {
-            return this.controller.invokeOperation(processUrl, vm.model).then((info) => {
+            return this.controller.invokeOperation(model).then((info) => {
                 if (!menuParameter.operationControlButtonState) return info;
-
                 menuParameter.operationControlButtonState.outputLog = info;
                 this.updateCanvas();
-                /*menuParameter.operationControlButtonState.outputLog.timer.*/
                 setTimeout(handler, 100);
                 return info;
             }).catch((error) => {
-                console.log('onCyclicOperation: error.', error);
+                console.error('onCyclicOperation: error.', error);
             });
-        };/*
-        menuParameter.operationControlButtonState.outputLog.timer = */
+        };
         setTimeout(handler, 100);
     }
 
-    onExecuteOperation(vm) {
-        //console.log('onExecuteOperation:', vm);
-        let processUrl = vm.processUrl;
-        return this.controller.executeOperation(processUrl, vm.model).then((info) => {
+    async onExecuteOperation(model) {
+        console.info('CanvasDraw.onExecuteOperation(', model, ')');
+        return await this.controller.executeOperation(model).then((info) => {
             menuParameter.operationControlButtonState.outputLog = info;
             this.validate();
-            //this.controller.update();
+            return info;
+        }).catch((error) => {
+            console.error('CanvasDraw.onExecuteOperation: error.', error);
         });
     }
 

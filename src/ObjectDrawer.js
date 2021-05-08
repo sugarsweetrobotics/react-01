@@ -1,6 +1,10 @@
 import {drawEllipse, drawRect, drawText} from "./Drawing";
+import {colors} from './VMColors';
 //import {includes, distanceToLine, offset, rotate, translate} from "./Dimension";
 
+const drawFunction = {
+    'Operation': drawEllipse
+}
 
 export function drawVM(drawer, ctx, vm) {
     if (vm.type === 'ec') {
@@ -12,10 +16,6 @@ export function drawVM(drawer, ctx, vm) {
     if (vm.type === 'container') {
         color = '#00fcf4';
         drawRect(ctx, vm.position, vm.size, color);
-    } else if (vm.type === 'operation') {
-        color = '#fff900';
-        color = '#ff0000';
-        drawEllipse(ctx, vm.position, vm.size, color);
     } else if (vm.type === 'container_operation') {
         color = '#00ff29';
         drawEllipse(ctx, vm.position, vm.size, color);
@@ -25,11 +25,13 @@ export function drawVM(drawer, ctx, vm) {
     } else if (vm.type === 'topic') {
         color = '#ff0fff';
         drawRect(ctx, vm.position, vm.size, color);
+    } else {
+        drawFunction[vm.model.info.className](ctx, vm.position, vm.size, colors[vm.model.info.className]);
     }
 
-    let text = vm.model.model.instanceName ? vm.model.model.instanceName: vm.model.model.fullName;
+    let text = vm.model.info.fullName;
     if (vm.type === 'callback') text = vm.model.model.name;
-    drawText(ctx, text, {x: vm.position.x, y: vm.position.y + 10}, color);
+    drawText(ctx, text, {x: vm.position.x, y: vm.position.y + 10}, colors[vm.model.info.className]);
 }
 
 

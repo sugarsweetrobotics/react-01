@@ -1,6 +1,6 @@
 import React from 'react';
 import {Icon, Accordion} from 'semantic-ui-react';
-import OperationSidePanel from "./OperationSidePanel";
+import OperationSidePanel from "./Sidemenu/OperationSidePanel";
 import {valueIsError} from "./nerikiri";
 
 

@@ -1,0 +1,18 @@
+
+.operation-in-sidemenu {
+    textAlign: left;
+    width: 400px;
+}
+
+.operation-in-sidemenu .ui.accordion {
+    padding: 0px;
+    margin-top: 0px;
+    margin-left: 10px;
+}
+
+.operation-in-sidemenu .ui.accordion .title {
+    padding: 0px;
+    marginBottom: 0px;
+    color: #ff9174;
+}
+
