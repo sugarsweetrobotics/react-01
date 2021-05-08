@@ -1,7 +1,7 @@
 import React from 'react';
 import {Icon, Accordion} from 'semantic-ui-react';
-import OperationSidePanel from "./Sidemenu/OperationSidePanel";
-import {valueIsError} from "./nerikiri";
+import OperationSidePanel from "./OperationSidePanel";
+import {valueIsError} from "../nerikiri";
 
 
 export default class ContainerSidePanel extends React.Component {
@@ -48,7 +48,7 @@ export default class ContainerSidePanel extends React.Component {
     }
 
     render() {
-        let instanceName = this.state.container.instanceName;
+        let instanceName = this.state.container.info.fullName;
         let titleIsActive = this.state.titleIsActive;
         let operationIsActive = this.state.operationIsActive;
         //let url = this.state.process.url();

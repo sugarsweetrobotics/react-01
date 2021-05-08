@@ -1,7 +1,7 @@
 import React from 'react';
 import {Icon, Accordion} from 'semantic-ui-react';
 import OperationSidePanel from "./OperationSidePanel";
-import ContainerSidePanel from "../ContainerSidePanel";
+import ContainerSidePanel from "./ContainerSidePanel";
 import ConnectionSidePanel from "../ConnectionSidePanel";
 import ECSidePanel from "../ECSidePanel";
 import BrokerSidePanel from "../BrokerSidePanel";
