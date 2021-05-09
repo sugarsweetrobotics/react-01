@@ -1,8 +1,8 @@
 import React from 'react';
-import {valueIsError} from "./nerikiri";
+import {valueIsError} from "../nerikiri";
 import {Icon,  Accordion} from 'semantic-ui-react';
-import OperationSidePanel from "./Sidemenu/OperationSidePanel";
-import ConnectionSidePanel from "./ConnectionSidePanel";
+import OperationSidePanel from "./OperationSidePanel";
+import ConnectionSidePanel from "../ConnectionSidePanel";
 
 export default class TopicSidePanel extends React.Component {
 
@@ -57,35 +57,25 @@ export default class TopicSidePanel extends React.Component {
         });
     }
 
+    onDragStart(e) {
+        e.dataTransfer.setData("application/my-app", JSON.stringify(this.props.topic));
+        e.dataTransfer.dropEffect = "move";
+    }
+
     render() {
-        let instanceName = this.state.topic.fullName;
-        let titleIsActive = this.state.titleIsActive;
+        let instanceName = this.props.topic.info.fullName;
         let connectionIsActive = this.state.connectionIsActive;
         return (
-            <div className="process-in-sidemenu" style={{textAlign: "left"}} >
+            <div className="topic-in-sidemenu" style={{textAlign: "left"}} >
                 <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
-                    <Accordion.Title index={0}
-                                     active={titleIsActive}
+                    <Accordion.Title active={this.state.titleIsActive} draggable={true}
                                      style={{padding: 0, marginBottom: 0, color: '#fda6fd'}}
                                      onClick={()=>{this.setState({titleIsActive: !this.state.titleIsActive})}}
-                                     draggable={true}
-                                     onDragStart={(e) => {
-
-                                         let data = {
-                                             type: 'topic',
-                                             processUrl: this.state.process.url(),
-                                             model: this.state.topic,
-                                             ///operations: this.state.ec.boundOperations
-                                         };
-                                         e.dataTransfer.setData("application/my-app", JSON.stringify(data));
-                                         e.dataTransfer.dropEffect = "move";
-
-                                     }}
-                    >
+                                     onDragStart={this.onDragStart.bind(this)}>
                         <Icon name="dropdown"></Icon>
-                        {instanceName}
+                        {this.props.topic.info.fullName}
                     </Accordion.Title>
-                    <Accordion.Content active={titleIsActive}>
+                    <Accordion.Content active={this.state.titleIsActive}>
                         {/* Connections */}
                         <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
                             <Accordion.Title index={1}

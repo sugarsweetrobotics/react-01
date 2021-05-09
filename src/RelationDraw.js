@@ -4,15 +4,16 @@ import {rotate, translate, crossingPointLineAndEllipse, crossingPointLineAndRect
 
 export function drawOperationConnection(drawer, ctx, vm) {
     let color = '#ff0000';
-    if (vm.type === 'operation' || vm.type === 'container_operation') {
+    if (vm.type === 'Operation' || vm.type === 'Topic') {
         drawer.viewModels.forEach((tgt) => {
-            // console.log('tgt: ', tgt, 'vm, ', vm);
-            if ( (tgt.type === 'container_operation' || tgt.type === 'operation' || tgt.type === 'topic') && vm.model.model.outlet.connections) {
-                vm.model.model.outlet.connections.forEach((c)=>{
-                    //console.log('c:', c);
-                    if ((tgt.type === 'operation' && c.inlet.ownerFullName === tgt.model.model.fullName) ||
-                        (tgt.type === 'topic' && c.inlet.ownerFullName === tgt.model.model.fullName) ||
-                        (tgt.type === 'container_operation' && c.inlet.ownerFullName === tgt.model.model.fullName)) { // Name + ':' + tgt.model.model.instanceName)) {
+            if ( (tgt.type === 'Operation' || tgt.type === 'Topic') && vm.model.info.outlet.connections) {
+                console.log('Connection draw');
+                /// 出力outlet側からたどる
+                vm.model.info.outlet.connections.forEach((c)=>{
+                    console.log('c:', c);
+                    /// 接続しているinletがtgtのモデルと同じなら
+                    if ((tgt.type === 'Operation' && c.inlet.ownerFullName === tgt.model.info.fullName) ||
+                        (tgt.type === 'Topic' && c.inlet.ownerFullName === tgt.model.info.fullName)) { // Name + ':' + tgt.model.model.instanceName)) {
                         drawLine(ctx, vm.position, tgt.position, color);
                         let line = {
                             x0: vm.position.x, y0: vm.position.y,
@@ -79,7 +80,7 @@ export function drawECBindConnection(drawer, ctx, vm) {
     let padding = 10;
     let stopPos = {x:vm.position.x - (vm.size.width-padding*3)/4 - padding/2, y: vm.position.y + vm.size.height/3 - padding};
     let startPos = {x:vm.position.x + (vm.size.width-padding*3)/4 + padding/2, y: vm.position.y + vm.size.height/3 - padding};
-    if (vm.type === 'ec') {
+    if (vm.type === 'ExecutionContext') {
         drawer.viewModels.forEach((tgt) => {
             if (tgt.type === 'container_operation' || tgt.type === 'operation') {
                 if (vm.model.model.boundOperations) {
@@ -181,13 +182,13 @@ export function drawCallbackBindConnection(drawer, ctx, vm) {
 }
 
 export function drawContainerConnection(drawer, ctx, vm) {
-    if (vm.type === 'container') {
+    if (vm.type === 'Container') {
+        console.info("RelationDraw.drawContainerConnection ", vm);
         let color = '#00fcf4';
         drawer.viewModels.forEach((tgt) => {
-            if (tgt.type === 'container_operation' && tgt.model.ownerContainer.instanceName === vm.model.model.instanceName) {
+            console.info(tgt);
+            if (tgt.type === 'Operation' && tgt.model.info.ownerContainerFullName === vm.model.info.fullName) {
                 drawLine(ctx, vm.position, tgt.position, color);
-
-
                 let point = crossingPointLineAndEllipse({
                     x0: vm.position.x, y0: vm.position.y,
                     x1: tgt.position.x, y1: tgt.position.y

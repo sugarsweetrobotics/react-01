@@ -17,28 +17,6 @@ export default class ContainerSidePanel extends React.Component {
             operations: [],
             operationDataSet: []
         };
-
-        /*
-        this.state.process.containerOperationInfos(props.container).then((infos)=>{
-            infos.forEach((operation) => {
-                this.state.process.connectionInfos(operation).then((infos)=> {
-                    if (!valueIsError(infos)) {
-
-                        let data = {
-                            type: 'container_operation',
-                            processUrl: this.state.process.url(),
-                            model: operation,
-                            connections: infos,
-                            ownerContainer: this.props.container
-                        };
-                        this.state.operationDataSet.push(data);
-                        this.setState({operationDataSet: this.state.operationDataSet});
-                    }
-                });
-            })
-            this.setState({operations: infos})
-        });
-        */
     }
 
     operationPanels() {
@@ -47,34 +25,25 @@ export default class ContainerSidePanel extends React.Component {
         });
     }
 
+    onDragStart(e) {
+        e.dataTransfer.setData("application/my-app", JSON.stringify(this.props.container));
+        e.dataTransfer.dropEffect = "move";
+    }
+
     render() {
         let instanceName = this.state.container.info.fullName;
         let titleIsActive = this.state.titleIsActive;
         let operationIsActive = this.state.operationIsActive;
         //let url = this.state.process.url();
         return (
-            <div className="process-in-sidemenu" style={{textAlign: "left", marginTop: 0, padding: 0}}
 
-            >
-                <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
-                    <Accordion.Title index={0}
-                                     active={titleIsActive}
-                                     style={{padding: 0, marginBottom: 0, color: '#a6fafd'}}
+            <div className="container-in-sidemenu">
+                <Accordion>
+                    <Accordion.Title active={this.state.titleIsActive} draggable={true}
                                      onClick={()=>{this.setState({titleIsActive: !this.state.titleIsActive})}}
-                                     draggable={true}
-                                     onDragStart={(e) => {
-                                         let data = {
-                                             type: 'container',
-                                             processUrl: this.state.process.url(),
-                                             model: this.state.container,
-                                             //operations: this.state.operationDataSet
-                                         };
-                                         e.dataTransfer.setData("application/my-app", JSON.stringify(data));
-                                         e.dataTransfer.dropEffect = "move";
-                                     }}
-                    >
+                                     onDragStart={this.onDragStart.bind(this)} >
                         <Icon name="dropdown"></Icon>
-                        {instanceName}
+                        {this.props.container.info.fullName}
                     </Accordion.Title>
                     <Accordion.Content active={titleIsActive} style={{padding: 0, marginTop: 0}}>
 

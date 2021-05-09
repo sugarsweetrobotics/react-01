@@ -22,7 +22,10 @@ import {drawLine, drawArc, drawText} from "./Drawing";
 import {drawLeftSideMenu} from "./SideMenuDrawer";
 
 const sizes = {
-    'Operation': {width: 150, height: 70}
+    'Operation': {width: 150, height: 70},
+    'Container': {width: 150, height: 70},
+    'Topic': {width: 150, height: 70},
+    'ExecutionContext': {width: 150, height: 150}
 }
 export let ViewModel = (m, pos) => {
     if (m.type === 'container') {
@@ -67,6 +70,13 @@ export let ViewModel = (m, pos) => {
             size: {width: 150, height: 50},
             model: m
         }
+    } else if (m.info.typeName === '_ECContainerStruct') {
+        return {
+            type: 'EC',
+            position: pos,
+            size: sizes[m.info.className],
+            model: m
+        };
     } else {
         return {
             type: m.info.className,
@@ -179,13 +189,13 @@ export class CanvasDraw {
      * @returns {CanvasDraw}
      */
     addModel(model, point) {
+        console.info('CanvasDraw.addModel ', model, point);
         /// 重複登録を避ける
         for(let vm of this.viewModels) {
             if (model.info.className === vm.model.info.className && model.info.fullName === vm.model.info.fullName) { // もし重複があったら何もしない
                 return this;
             }
         }
-
         this.viewModels.push(ViewModel(model, point));
 
         if (model.type === 'container_operation') {
@@ -305,6 +315,7 @@ export class CanvasDraw {
     }
 
     checkMenuButtonClicked(point) {
+        console.log('check Menu Button Clicked', menuParameter.ecButtonState);
         if (menuParameter.fsmButtonState.stateButtonStates) {
             for(let st of menuParameter.fsmButtonState.stateButtonStates) {
                 if (includes(st, point)) {
@@ -691,9 +702,8 @@ export class CanvasDraw {
     }
 
     onChangeECState(vm, state) {
-        //console.log('onChangeECState:', vm, state);
-        let processUrl = vm.model.processUrl;
-        return this.controller.changeECState(processUrl, vm.model.model, state).then((info) => {
+        console.log('onChangeECState:', vm, state);
+        return this.controller.changeECState(vm.model, state).then((info) => {
             this.validate();
             //this.controller.update();
         });

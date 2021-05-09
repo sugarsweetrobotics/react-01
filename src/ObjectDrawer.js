@@ -3,8 +3,16 @@ import {colors} from './VMColors';
 //import {includes, distanceToLine, offset, rotate, translate} from "./Dimension";
 
 const drawFunction = {
-    'Operation': drawEllipse
+    'Operation': (drawer, ctx, vm, color) => drawEllipse(ctx, vm.position, vm.size, color),
+    'Container': (drawer, ctx, vm, color) => drawRect(ctx, vm.position, vm.size, color),
+    'Topic': (drawer, ctx, vm, color) => drawEllipse(ctx, vm.position, vm.size, color),
+    'ExecutionContext': (drawer, ctx, vm, color) => {
+        drawRect(ctx, vm.position, vm.size, color);
+        drawECStates(drawer, ctx, vm);
+    }
 }
+
+
 
 export function drawVM(drawer, ctx, vm) {
     if (vm.type === 'ec') {
@@ -13,25 +21,18 @@ export function drawVM(drawer, ctx, vm) {
         return drawFSMStates(drawer, ctx, vm);
     }
     let color = '#00fcf4';
-    if (vm.type === 'container') {
-        color = '#00fcf4';
-        drawRect(ctx, vm.position, vm.size, color);
-    } else if (vm.type === 'container_operation') {
-        color = '#00ff29';
-        drawEllipse(ctx, vm.position, vm.size, color);
+    if (vm.model.info.typeName === '_ECContainerStruct') {
+        drawFunction[vm.model.info.typeName](ctx, vm.position, vm.size, colors[vm.model.info.typeName]);
     } else if (vm.type === 'callback') {
         color = '#ffffff';
         drawEllipse(ctx, vm.position, vm.size, color);
-    } else if (vm.type === 'topic') {
-        color = '#ff0fff';
-        drawRect(ctx, vm.position, vm.size, color);
     } else {
-        drawFunction[vm.model.info.className](ctx, vm.position, vm.size, colors[vm.model.info.className]);
+        drawFunction[vm.model.info.className](drawer, ctx, vm, colors[vm.model.info.className]);
     }
 
     let text = vm.model.info.fullName;
     if (vm.type === 'callback') text = vm.model.model.name;
-    drawText(ctx, text, {x: vm.position.x, y: vm.position.y + 10}, colors[vm.model.info.className]);
+    drawText(ctx, text, {x: vm.position.x, y: vm.position.y - vm.size.height/2 + 40}, colors[vm.model.info.className]);
 }
 
 
@@ -54,9 +55,7 @@ export function drawECStates(drawer, ctx, vm) {
     let stopPos = {x:vm.position.x - (vm.size.width-padding*3)/4 - padding/2, y: vm.position.y + vm.size.height/3 - padding};
     let startPos = {x:vm.position.x + (vm.size.width-padding*3)/4 + padding/2, y: vm.position.y + vm.size.height/3 - padding};
     let size = {width: (vm.size.width-padding*3)/2, height:vm.size.height/2-padding*3};
-
-    // console.log('EC:', vm.model.model);
-    if (vm.model.model.state === 'started') {
+    if (vm.model.ec_state === 'started') {
         drawRect(ctx, startPos, size, color, {
             fill: false,
             fillColor: 'black',

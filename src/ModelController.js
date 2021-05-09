@@ -1,6 +1,17 @@
 
 
-import process, {process_api, changeECState, changeFSMState, deleteConnection, updateProps, invokeOperation, executeOperation, bindOperation, unbindOperation} from './nerikiri';
+import process, {
+    process_api,
+    changeECState,
+    changeFSMState,
+    deleteConnection,
+    updateProps,
+    invokeOperation,
+    executeOperation,
+    bindOperation,
+    unbindOperation,
+    updateECState
+} from './nerikiri';
 
 export default class ModelController {
 
@@ -81,11 +92,10 @@ export default class ModelController {
     }
 
 
-    changeECState(processUrl, ec, state) {
-        return changeECState(processUrl, ec, state).then((info) => {
-            // console.log('updateECState');
-            this.update();
-            return info;
+    async changeECState(ec, state) {
+        console.info('ModelController.changeECState ', ec, state);
+        return await changeECState(ec, state).then((info) => {
+            return updateECState(ec);
         })
     }
 

@@ -3,10 +3,10 @@ import {Icon, Accordion} from 'semantic-ui-react';
 import OperationSidePanel from "./OperationSidePanel";
 import ContainerSidePanel from "./ContainerSidePanel";
 import ConnectionSidePanel from "../ConnectionSidePanel";
-import ECSidePanel from "../ECSidePanel";
+import ECSidePanel from "./ECSidePanel";
 import BrokerSidePanel from "../BrokerSidePanel";
 import CallbackSidePanel from "../CallbackSidePanel";
-import TopicSidePanel from "../ToipicSidePanel";
+import TopicSidePanel from "./ToipicSidePanel";
 import FSMSidePanel from "../FSMSidePanel";
 
 export default class ProcessSidePanel extends React.Component {

@@ -16,3 +16,25 @@
     color: #ff9174;
 }
 
+.operation-in-sidemenu .ui.accordion .content {
+    padding: 0px;
+    marginBottom: 0px;
+    color: #ff9174;
+}
+
+.container-in-sidemenu {
+    textAlign: left;
+    width: 400px;
+}
+
+.container-in-sidemenu .ui.accordion {
+    padding: 0px;
+    margin-top: 0px;
+    margin-left: 10px;
+}
+
+.container-in-sidemenu .ui.accordion .title {
+    padding: 0px;
+    marginBottom: 0px;
+    color: #00fcf4;
+}

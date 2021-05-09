@@ -43,12 +43,56 @@ function container(url, containerInfo, operations) {
     };
 }
 
-
+function topic(url, operationInfo) {
+    return {
+        url: url,
+        info: operationInfo
+    };
+}
 
 function operation(url, operationInfo) {
     return {
         url: url,
         info: operationInfo
+    };
+}
+
+export async function changeECState(ec, state) {
+    console.info('nerikiri.changeECState ', ec, state);
+    let api = 'httpBroker/';
+    return (await fetch(ec.url + api + 'operations/' + ec.info.fullName + ':activate_state_' + state + '.ope/execute', {method: 'PUT', body: '{}', mode: 'cors'})).json();
+}
+
+
+export async function getECState(ec) {
+    console.info('nerikiri.getECState ', ec);
+    let api = 'httpBroker/';
+    return (await fetch(ec.url + api + 'operations/' + ec.info.fullName + ':get_state.ope/call', {method: 'PUT', body: '{}', mode: 'cors'})).json();
+}
+
+export async function updateECState(ec) {
+    console.info('nerikiri.updateECState ', ec);
+    let currentState = await getECState(ec);
+    ec.ec_state = currentState;
+    return currentState;
+}
+
+function ec(url, containerInfo, operations) {
+    let api = 'httpBroker/';
+    return {
+        url: url,
+        info: containerInfo,
+        operations: operations,
+        ec_state: 'unknown',
+        isOwn: (operation) => {
+            return ownerContainerName(operation.info) == containerInfo.fullName;
+        },
+        getState: async () => {
+            return (await fetch(url + api + 'operations/' + containerInfo.fullName + ':get_state.ope/call', {method: 'PUT', body: "{}", mode: 'cors'})).json();
+        },
+        setState: async (state) => {
+            return (await fetch(url + api + 'operations/' + containerInfo.fullName + ':set_state.ope/call', {method: 'PUT', body: '{"' + state + '"}', mode: 'cors'})).json();
+        }
     };
 }
 
@@ -69,12 +113,17 @@ function ownerContainerName(info) {
     return '';
 }
 
+
 export function process_api(url) {
 
     let api = 'httpBroker/';
     let fetchJson = async (addr) => {
         return (await fetch(url + api + addr, {method: 'GET', mode: 'cors'})).json();
     };
+
+    let putJson = async (addr, obj) => {
+        return (await fetch(url + api + addr, {method: 'PUT', body: JSON.stringify(obj), mode: 'cors'})).json();
+    }
 
     return {
         process: async() => {
@@ -83,6 +132,7 @@ export function process_api(url) {
                 url: ()=> {
                     return url;
                 },
+                _all_operations: info.operations.map(opInfo => { return operation(url, opInfo); }),
                 operations: info.operations.filter(opInfo => {
                     return !pureOperationTypeName(opInfo).startsWith('_') && !(opInfo.typeName === 'Topic');
                 }).map(opInfo => { return operation(url, opInfo); }),
@@ -93,9 +143,20 @@ export function process_api(url) {
                         return ownerContainerName(oInfo) == cInfo.fullName;
                     }));
                 }),
-                topics:[],
+                topics: info.operations.filter(opInfo => {
+                    return opInfo.typeName === 'Topic';
+                }).map(opInfo => { return topic(url, opInfo); }),
                 fsms:[],
-                ecs:[],
+
+                ecs: info.containers.filter(cInfo => {
+                    return cInfo.className === 'ExecutionContext';
+                }).map(cInfo => {
+                    let e = ec(url, cInfo, info.operations.filter((oInfo) => {
+                        return ownerContainerName(oInfo) == cInfo.fullName;
+                    }));
+                    let s = e.getState().then(s => e.ec_state = s);
+                    return e;
+                }),
                 brokers:[],
                 connections:[]
             }
@@ -447,19 +508,6 @@ export async function changeFSMState(procUrl, fsm, state) {
     if (procUrl) {
         console.log('nerikiri.changeECState(', procUrl, fsm, state, ')');
         let f = await fetch( procUrl + 'process/fsms/' + fsm.fullName + '/state/', {
-            method: 'PUT',
-            mode: 'cors',
-            body: '"' + state + '"',
-        });
-        return f.json();
-    }
-}
-
-
-export async function changeECState(procUrl, ec, state) {
-    if (procUrl) {
-        console.log('nerikiri.changeECState(', procUrl, ec, state, ')');
-        let f = await fetch( procUrl + 'process/ecs/' + ec.fullName + '/state/', {
             method: 'PUT',
             mode: 'cors',
             body: '"' + state + '"',

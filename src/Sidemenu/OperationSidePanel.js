@@ -62,15 +62,7 @@ export default class OperationSidePanel extends React.Component {
     }
 
     onDragStart(e) {
-        let data = {
-
-            type: this.props.operation.info.className === 'ContainerOperation' ? 'container_operation' : 'operation',
-            processUrl: this.state.process.url(),
-            model: this.props.operation,
-            ownerContainer: this.props.operation.info.className === 'ContainerOperation' ? this.props.ownerContainer : undefined
-        };
-        data = this.props.operation;
-        e.dataTransfer.setData("application/my-app", JSON.stringify(data));
+        e.dataTransfer.setData("application/my-app", JSON.stringify(this.props.operation));
         e.dataTransfer.dropEffect = "move";
     }
 
@@ -86,13 +78,13 @@ export default class OperationSidePanel extends React.Component {
         return (
             <div className="operation-in-sidemenu"  >
                 <Accordion className="operation-accordion">
-                    <Accordion.Title active={titleIsActive} draggable={true}
+                    <Accordion.Title active={this.state.titleIsActive} draggable={true}
                                      onClick={()=>{this.setState({titleIsActive: !this.state.titleIsActive})}}
                                      onDragStart={this.onDragStart.bind(this)} >
                         <Icon name="dropdown"></Icon>
                         {fullName}
                     </Accordion.Title>
-                    <Accordion.Content active={titleIsActive} style={{padding: 0, marginTop: 0}}>
+                    <Accordion.Content active={this.state.titleIsActive}>
                         {/* Connections */}
                         <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
                             <Accordion.Title active={connectionIsActive}

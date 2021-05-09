@@ -255,7 +255,7 @@ function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgre
         return;
     }
 
-    if (vm.type === 'ec') {
+    if (vm.type === 'ExecutionContext') {
 
        // menuParameter.ecButtonState = {};
         drawECSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress);
@@ -492,7 +492,7 @@ function drawFSMSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimat
 }
 
 function drawECSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress) {
-    // console.log('drawECSpecialMenu');
+    console.log('drawECSpecialMenu');
     let padding = 15;
     let stopPos = {x:vm.position.x - (vm.size.width-padding*3)/4 - padding/2, y: vm.position.y + vm.size.height/3 - padding};
     let startPos = {x:vm.position.x + (vm.size.width-padding*3)/4 + padding/2, y: vm.position.y + vm.size.height/3 - padding};
@@ -602,6 +602,7 @@ function drawECSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimati
             } else {
                 menuParameter.ecButtonState.boundedOperationButtons = [];
                 let i = 0;
+                /*
                 vm.model.model.boundOperations.forEach((op) => {
                     drawRect(ctx, {
                         x: vm.position.x + rd * c + 140,
@@ -668,6 +669,8 @@ function drawECSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimati
                         y: vm.position.y + rd * s + 40 * (i+1)
                     }, size: { width: 260, height: 30}, operation: null
                 });
+
+                 */
             }
         }
     }
