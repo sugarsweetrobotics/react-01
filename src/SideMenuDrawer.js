@@ -1,4 +1,4 @@
-import {drawEllipse, drawPi, drawText} from "./Drawing";
+import {drawEllipse, drawPi, drawText} from "./Drawers/Drawing";
 
 
 export function drawLeftSideMenu(drawer, ctx) {

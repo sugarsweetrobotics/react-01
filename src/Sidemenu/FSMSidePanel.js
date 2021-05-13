@@ -1,8 +1,8 @@
 import React from 'react';
-import {valueIsError} from "./nerikiri";
+import {valueIsError} from "../nerikiri";
 import {Icon,  Accordion} from 'semantic-ui-react';
-import OperationSidePanel from "./Sidemenu/OperationSidePanel";
-import ConnectionSidePanel from "./ConnectionSidePanel";
+import OperationSidePanel from "./OperationSidePanel";
+import ConnectionSidePanel from "../ConnectionSidePanel";
 
 class FSMStatePanel extends React.Component {
 
@@ -13,7 +13,7 @@ class FSMStatePanel extends React.Component {
     render() {
         return (
             <div>
-                {this.props.state.name}
+                {this.props.state}
             </div>
         )
     }
@@ -34,50 +34,40 @@ export default class FSMSidePanel extends React.Component {
 
     statePanels() {
         return this.state.fsm.states.map((stat, i ) => {
-            //console.log(stat);
+            console.log('state::', stat);
             return <FSMStatePanel key={i} state={stat} fsm={this.state.fsm} />
         });
     }
 
     render() {
-        let instanceName = this.state.fsm.fullName;
-        let titleIsActive = this.state.titleIsActive;
-        let contentIsActive = this.state.contentIsActive;
         return (
             <div className="process-in-sidemenu" style={{textAlign: "left"}} >
                 <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10, color: "white"}}>
                     <Accordion.Title index={0}
-                                     active={titleIsActive}
+                                     active={this.state.titleIsActive}
                                      style={{padding: 0, marginBottom: 0, color: "#6cf17e"}}
                                      onClick={()=>{this.setState({titleIsActive: !this.state.titleIsActive})}}
                                      draggable={true}
                                      onDragStart={(e) => {
-
-                                         let data = {
-                                             type: 'fsm',
-                                             processUrl: this.state.process.url(),
-                                             model: this.state.fsm
-                                         };
-                                         e.dataTransfer.setData("application/my-app", JSON.stringify(data));
+                                         e.dataTransfer.setData("application/my-app", JSON.stringify(this.props.fsm));
                                          e.dataTransfer.dropEffect = "move";
-
                                      }}
                     >
                         <Icon name="dropdown"></Icon>
-                        {instanceName}
+                        {this.props.fsm.info.fullName}
                     </Accordion.Title>
-                    <Accordion.Content active={titleIsActive}>
+                    <Accordion.Content active={this.state.titleIsActive}>
                         {/* Connections */}
                         <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
                             <Accordion.Title index={1}
-                                             active={contentIsActive}
+                                             active={this.state.contentIsActive}
                                              onClick={()=>{this.setState({contentIsActive: !this.state.contentIsActive})}}
                                              style={{padding: 0, marginBottom: 0, color: "#6cf17e"}}
                             >
                                 <Icon name="dropdown"></Icon>
                                 {"States"}
                             </Accordion.Title>
-                            <Accordion.Content  style={{padding: 0, marginTop: 0, marginLeft: 10}} active={contentIsActive}>
+                            <Accordion.Content  style={{padding: 0, marginTop: 0, marginLeft: 10}} active={this.state.contentIsActive}>
                                 <div style={{marginLeft: 10}}>
                                     {this.statePanels()}
                                 </div>

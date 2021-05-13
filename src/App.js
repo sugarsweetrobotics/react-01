@@ -16,6 +16,7 @@ export default class App extends React.Component {
 
     constructor(props) {
         super(props);
+
         this.state = {
             sidebar_visible: false,
             controller: new ModelController()

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {CanvasDraw} from "./CanvasDraw";
+import {CanvasDraw} from "./Drawers/CanvasDraw";
 
 export default class SystemCanvas extends React.Component {
 

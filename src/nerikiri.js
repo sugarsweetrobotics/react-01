@@ -1,3 +1,4 @@
+import {drawLine} from "./Drawers/Drawing";
 
 var fetch = require('node-fetch');
 
@@ -57,6 +58,14 @@ function operation(url, operationInfo) {
     };
 }
 
+export function selectConnectingOperation(operation, operations) {
+    return operations.filter((op) => {
+        return operation.info.outlet.connections.some((c)=>
+            c.inlet.ownerFullName === op.info.fullName
+        );
+    });
+}
+
 export async function changeECState(ec, state) {
     console.info('nerikiri.changeECState ', ec, state);
     let api = 'httpBroker/';
@@ -95,6 +104,101 @@ function ec(url, containerInfo, operations) {
         }
     };
 }
+
+/**
+ * ExecutionContextのstarted状態繊維を行うOperationを取得する
+ * @param ec
+ * @returns {undefined}
+ */
+export function getActivateStartFunction(ec) {
+    let activate_started_ope = undefined;
+    ec.operations.forEach( (op) => {
+        if (op.fullName === ec.info.fullName + ':activate_state_started.ope') {
+            activate_started_ope = op;
+        }
+    });
+    if (activate_started_ope === undefined) {
+        console.error('Error. Activation operation for EC(', ec.info.fullName, ') can not be found.');
+        return undefined;
+    }
+    return activate_started_ope;
+}
+
+export function selectECBoundedOperations(ec, operations) {
+    console.info('nerikiri.selectECBoundedOperations ', ec, operations);
+    let activate_started_ope = getActivateStartFunction(ec);
+    return operations.filter(op =>
+        activate_started_ope.outlet.connections.some((conInfo) => op.info.fullName === conInfo.inlet.ownerFullName)
+    );
+}
+
+export async function getFSMState(fsm) {
+    console.info('nerikiri.getFSMState ', fsm);
+    let api = 'httpBroker/';
+    return (await fetch(fsm.url + api + 'operations/' + fsm.info.fullName + ':get_state.ope/call', {method: 'PUT', body: '{}', mode: 'cors'})).json();
+}
+
+function fsm(url, containerInfo, operations) {
+    let api = 'httpBroker/';
+
+    return {
+        url: url,
+        info: containerInfo,
+        states: operations.filter(op=> {
+            return op.fullName.startsWith((containerInfo.fullName + ':' + 'activate_state_'));
+        }).map(op => {
+            return op.fullName.slice((containerInfo.fullName + ':' + 'activate_state_').length, op.fullName.length - '.ope'.length);
+        }),
+        operations: operations,
+        fsm_state: 'unknown',
+        isOwn: (operation) => {
+            return ownerContainerName(operation.info) == containerInfo.fullName;
+        },
+        getState: async () => {
+            return (await fetch(url + api + 'operations/' + containerInfo.fullName + ':get_state.ope/call', {method: 'PUT', body: "{}", mode: 'cors'})).json();
+        },
+        setState: async (state) => {
+            return (await fetch(url + api + 'operations/' + containerInfo.fullName + ':set_state.ope/call', {method: 'PUT', body: '{"' + state + '"}', mode: 'cors'})).json();
+        }
+    };
+}
+
+
+/**
+ * FSMのstarted状態繊維を行うOperationを取得する
+ * @param fsm
+ * @param state
+ * @returns {undefined}
+ */
+export function getActivateStateFunction(fsm, state) {
+    let activate_state_ope = undefined;
+    fsm.operations.forEach( (op) => {
+        if (op.fullName === fsm.info.fullName + ':activate_state_' + state + '.ope') {
+            activate_state_ope = op;
+        }
+    });
+    if (activate_state_ope === undefined) {
+        console.error('Error. Activation state (' + state + ') operation for FSM(', fsm.info.fullName, ') can not be found.');
+        return undefined;
+    }
+    return activate_state_ope;
+}
+
+
+export function selectFSMStateBoundedOperations(fsm, state, operations) {
+    let activate_state_ope = getActivateStateFunction(fsm, state);
+    return operations.filter(op =>
+        activate_state_ope.outlet.connections.some((conInfo) => op.info.fullName === conInfo.inlet.ownerFullName)
+    );
+}
+
+export function selectFSMStateBoundedECs(fsm, fsm_state, ecs, ec_state) {
+    let activate_state_ope = getActivateStateFunction(fsm, fsm_state);
+    return ecs.filter(ec =>
+        activate_state_ope.outlet.connections.some((conInfo) => conInfo.inlet.ownerFullName === ec.info.fullName + ':activate_state_'+ec_state+'.ope')
+    );
+}
+
 
 function pureOperationTypeName(info) {
     console.log('pureOperationTypeName:', info.typeName);
@@ -137,7 +241,7 @@ export function process_api(url) {
                     return !pureOperationTypeName(opInfo).startsWith('_') && !(opInfo.typeName === 'Topic');
                 }).map(opInfo => { return operation(url, opInfo); }),
                 containers: info.containers.filter(cInfo => {
-                    return !cInfo.typeName.startsWith('_');
+                    return !cInfo.typeName.startsWith('_') && cInfo.className === 'Container';
                 }).map(cInfo => {
                     return container(url, cInfo, info.operations.filter((oInfo) => {
                         return ownerContainerName(oInfo) == cInfo.fullName;
@@ -146,7 +250,15 @@ export function process_api(url) {
                 topics: info.operations.filter(opInfo => {
                     return opInfo.typeName === 'Topic';
                 }).map(opInfo => { return topic(url, opInfo); }),
-                fsms:[],
+                fsms: info.containers.filter(cInfo => {
+                    return cInfo.className === 'FSM';
+                }).map(cInfo => {
+                    let f = fsm(url, cInfo, info.operations.filter((oInfo) => {
+                        return ownerContainerName(oInfo) == cInfo.fullName;
+                    }));
+
+                    return f;
+                }),
 
                 ecs: info.containers.filter(cInfo => {
                     return cInfo.className === 'ExecutionContext';

@@ -16,16 +16,17 @@ import {
     drawSelectedRelationMenu,
     drawSelectedRelationMenuBackground
 } from "./MenuDrawer";
-import process, {connect, urlToAddr, urlToPort} from "./nerikiri";
+import process, {connect, urlToAddr, urlToPort} from "../nerikiri";
 
 import {drawLine, drawArc, drawText} from "./Drawing";
-import {drawLeftSideMenu} from "./SideMenuDrawer";
+import {drawLeftSideMenu} from "../SideMenuDrawer";
 
 const sizes = {
     'Operation': {width: 150, height: 70},
     'Container': {width: 150, height: 70},
     'Topic': {width: 150, height: 70},
-    'ExecutionContext': {width: 150, height: 150}
+    'ExecutionContext': {width: 150, height: 150},
+    'FSM': {width: 150, height: 150}
 }
 export let ViewModel = (m, pos) => {
     if (m.type === 'container') {
@@ -73,6 +74,13 @@ export let ViewModel = (m, pos) => {
     } else if (m.info.typeName === '_ECContainerStruct') {
         return {
             type: 'EC',
+            position: pos,
+            size: sizes[m.info.className],
+            model: m
+        };
+    } else if (m.info.typeName === '_FSMContainerStruct') {
+        return {
+            type: 'FSM',
             position: pos,
             size: sizes[m.info.className],
             model: m
@@ -150,8 +158,6 @@ export class CanvasDraw {
         })
 
         this.updateCanvas = ()=>updateCanvasFunc()
-
-
     }
 
     removeModel(model) {
@@ -198,6 +204,7 @@ export class CanvasDraw {
         }
         this.viewModels.push(ViewModel(model, point));
 
+        /*
         if (model.type === 'container_operation') {
             this.addModel({
                 type: 'container',
@@ -222,6 +229,8 @@ export class CanvasDraw {
                 this.addModel(data, {x: point.x + 70, y: point.y + 70 * i});
             });
         }
+
+         */
 
         return this;
     }
@@ -832,7 +841,7 @@ export class CanvasDraw {
         this.viewModels.forEach((vm) => {
             drawContainerConnection(this, ctx, vm);
             drawOperationConnection(this, ctx, vm);
-            drawTopicConnection(this, ctx, vm);
+            // drawTopicConnection(this, ctx, vm);
         });
 
         this.viewModels.forEach((vm) => {

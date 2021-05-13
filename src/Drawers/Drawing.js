@@ -1,4 +1,4 @@
-
+import {crossingPointLineAndEllipse, crossingPointLineAndRect, rotate, translate} from "./Dimension";
 
 
 export function drawPolygon(ctx, points, color) {
@@ -323,4 +323,129 @@ export function drawPi(ctx, center, radius, startAngle, endAngle, color, option)
     ctx.shadowBlur = 0;
     ctx.lineWidth = 1.0;
 
+}
+
+export function drawCircleArrowToEllipse(ctx, vm, tgtVm, color) {
+    drawLine(ctx, vm.position, tgtVm.position, color);
+    let point = crossingPointLineAndEllipse({
+        x0: vm.position.x, y0: vm.position.y,
+        x1: tgtVm.position.x, y1: tgtVm.position.y
+    }, {
+        width: tgtVm.size.width,
+        height: tgtVm.size.height
+    }, 8);
+    drawEllipse(ctx, {x: point.x-2, y: point.y-2}, {width: 12, height:12}, color);
+}
+
+export function drawArrowToRect(ctx, startPos, tgtVm, color) {
+    drawLine(ctx, startPos, tgtVm.position, color);
+
+    let line = {
+        x0: startPos.x, y0: startPos.y,
+        x1: tgtVm.position.x, y1: tgtVm.position.y
+    };
+
+    let point = crossingPointLineAndRect(line, {
+        width: tgtVm.size.width,
+        height: tgtVm.size.height
+    }, 8);
+
+
+    let dx = line.x0 - line.x1;
+    let dy = -(line.y0 - line.y1) ;
+    let theta = Math.atan2(dy, dx);
+
+    let points = [
+        {x: -10, y: 0},
+        {x: 7, y: 6},
+        {x: 7, y: -6}
+    ];
+
+
+    let newPoints = points.map(
+        (p) => {
+            return translate(rotate(p, -theta), point);
+        }
+    )
+    drawPolygon(ctx, newPoints, color);
+
+    /*
+    let line = {
+        x0: vm.position.x, y0: vm.position.y,
+        x1: tgt.position.x, y1: tgt.position.y
+    };
+
+
+    let point;
+    if (tgt.type === 'topic') {
+        point = crossingPointLineAndRect(line, {
+            width: tgt.size.width,
+            height: tgt.size.height
+        }, 8);
+    }else {
+        point = crossingPointLineAndEllipse(line, {
+            width: tgt.size.width,
+            height: tgt.size.height
+        }, 8);
+    }
+
+
+    let dx = line.x0 - line.x1;
+    let dy = -(line.y0 - line.y1) ;
+    let theta = Math.atan2(dy, dx);
+
+    let points = [
+        {x: -10, y: 0},
+        {x: 7, y: 6},
+        {x: 7, y: -6}
+    ];
+
+    let newPoints = points.map(
+        (p) => {
+            return translate(rotate(p, -theta), point);
+        }
+    )
+    drawPolygon(ctx, newPoints, color);
+
+
+    if (c.type === 'event') {
+        let p = translate(rotate({x:20, y:20}, -theta), point);
+        drawText(ctx, 'e', p, color);
+    }
+
+    let p = translate(rotate({x:20, y:-20}, -theta), point);
+    drawText(ctx, c.inlet.name, p, color);
+
+     */
+}
+
+export function drawArrowToEllipse(ctx, startPos, tgtVm, color) {
+    drawLine(ctx, startPos, tgtVm.position, color);
+
+    let line = {
+        x0: startPos.x, y0: startPos.y,
+        x1: tgtVm.position.x, y1: tgtVm.position.y
+    };
+
+    let point = crossingPointLineAndEllipse(line, {
+        width: tgtVm.size.width,
+        height: tgtVm.size.height
+    }, 8);
+
+    let dx = line.x0 - line.x1;
+    let dy = -(line.y0 - line.y1);
+    let theta = Math.atan2(dy, dx);
+
+    let points = [
+        {x: -10, y: 0},
+        {x: 7, y: 6},
+        {x: 7, y: -6}
+    ];
+
+    let newPoints = points.map(
+        (p) => {
+            return translate(rotate(p, -theta), point);
+        }
+    )
+    drawPolygon(ctx, newPoints, color);
 }

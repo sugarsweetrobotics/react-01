@@ -7,7 +7,7 @@ import ECSidePanel from "./ECSidePanel";
 import BrokerSidePanel from "../BrokerSidePanel";
 import CallbackSidePanel from "../CallbackSidePanel";
 import TopicSidePanel from "./ToipicSidePanel";
-import FSMSidePanel from "../FSMSidePanel";
+import FSMSidePanel from "./FSMSidePanel";
 
 export default class ProcessSidePanel extends React.Component {
 
