@@ -10,7 +10,8 @@ import process, {
     executeOperation,
     bindOperation,
     unbindOperation,
-    updateECState
+    updateECState,
+    updateFSMState
 } from './nerikiri';
 
 export default class ModelController {
@@ -96,15 +97,14 @@ export default class ModelController {
         console.info('ModelController.changeECState ', ec, state);
         return await changeECState(ec, state).then((info) => {
             return updateECState(ec);
-        })
+        });
     }
 
-    changeFSMState(processUrl, fsm, state) {
-        return changeFSMState(processUrl, fsm, state).then((info) => {
-            // console.log('updateECState');
-            this.update();
-            return info;
-        })
+    async changeFSMState(fsm, state) {
+        console.info('ModelController.changeFSMState ', fsm, state);
+        return await changeFSMState(fsm, state).then((info) => {
+            return updateFSMState(fsm);
+        });
     }
 
     async invokeOperation(op) {

@@ -60,42 +60,22 @@ export function drawECStates(drawer, ctx, vm) {
     let stopPos = {x:vm.position.x - (vm.size.width-padding*3)/4 - padding/2, y: vm.position.y + vm.size.height/3 - padding};
     let startPos = {x:vm.position.x + (vm.size.width-padding*3)/4 + padding/2, y: vm.position.y + vm.size.height/3 - padding};
     let size = {width: (vm.size.width-padding*3)/2, height:vm.size.height/2-padding*3};
-    if (vm.model.ec_state === 'started') {
-        drawRect(ctx, startPos, size, color, {
-            fill: false,
-            fillColor: 'black',
-            stroke: true,
-            strokeWidth: 8.0,
-        });
-        drawText(ctx, "started", startPos, color);
+    drawRect(ctx, startPos, size, color, {
+        fill: false,
+        fillColor: 'black',
+        stroke: true,
+        strokeWidth: vm.model.ec_state === 'started' ? 8.0 : 4.0,
+    });
+    drawText(ctx, "started", startPos, color);
 
 
-        drawRect(ctx, stopPos, size, color, {
-            fill: false,
-            fillColor: 'black',
-            stroke: true,
-            strokeWidth: 4.0,
-        });
-        drawText(ctx, "stopped", stopPos, color);
-    } else {
-        drawRect(ctx, startPos, size, color, {
-            fill: false,
-            fillColor: 'black',
-            stroke: true,
-            strokeWidth: 4.0,
-        });
-        drawText(ctx, "started", startPos, color);
-
-
-        drawRect(ctx, stopPos, size, color, {
-            fill: false,
-            fillColor: 'black',
-            stroke: true,
-            strokeWidth: 8.0,
-        });
-        drawText(ctx, "stopped", stopPos, color);
-    }
-
+    drawRect(ctx, stopPos, size, color, {
+        fill: false,
+        fillColor: 'black',
+        stroke: true,
+        strokeWidth: vm.model.ec_state === 'stopped' ? 8.0 : 4.0,
+    });
+    drawText(ctx, "stopped", stopPos, color);
 
 }
 

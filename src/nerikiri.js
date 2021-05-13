@@ -125,17 +125,30 @@ export function getActivateStartFunction(ec) {
 }
 
 export function selectECBoundedOperations(ec, operations) {
-    console.info('nerikiri.selectECBoundedOperations ', ec, operations);
+    /// console.info('nerikiri.selectECBoundedOperations ', ec, operations);
     let activate_started_ope = getActivateStartFunction(ec);
     return operations.filter(op =>
         activate_started_ope.outlet.connections.some((conInfo) => op.info.fullName === conInfo.inlet.ownerFullName)
     );
 }
 
-export async function getFSMState(fsm) {
-    console.info('nerikiri.getFSMState ', fsm);
+export async function getFSMState(fsmData) {
+    /// console.info('nerikiri.getFSMState ', fsmData);
     let api = 'httpBroker/';
-    return (await fetch(fsm.url + api + 'operations/' + fsm.info.fullName + ':get_state.ope/call', {method: 'PUT', body: '{}', mode: 'cors'})).json();
+    return (await fetch(fsmData.url + api + 'operations/' + fsmData.info.fullName + ':get_state.ope/call', {method: 'PUT', body: '{}', mode: 'cors'})).json();
+}
+
+export async function changeFSMState(fsm, state) {
+    console.info('nerikiri.changeFSMState ', fsm, state);
+    let api = 'httpBroker/';
+    return (await fetch(fsm.url + api + 'operations/' + fsm.info.fullName + ':activate_state_' + state + '.ope/execute', {method: 'PUT', body: '{}', mode: 'cors'})).json();
+}
+
+export async function updateFSMState(fsm) {
+    console.info('nerikiri.updateFSMState ', fsm);
+    let currentState = await getFSMState(fsm);
+    fsm.fsm_state = currentState;
+    return currentState;;
 }
 
 function fsm(url, containerInfo, operations) {
@@ -201,7 +214,7 @@ export function selectFSMStateBoundedECs(fsm, fsm_state, ecs, ec_state) {
 
 
 function pureOperationTypeName(info) {
-    console.log('pureOperationTypeName:', info.typeName);
+    // console.log('pureOperationTypeName:', info.typeName);
     let tokens = info.typeName.split(':');
     if (tokens.length >= 3) {
         return tokens[tokens.length-2];
@@ -256,7 +269,7 @@ export function process_api(url) {
                     let f = fsm(url, cInfo, info.operations.filter((oInfo) => {
                         return ownerContainerName(oInfo) == cInfo.fullName;
                     }));
-
+                    let s = getFSMState(f).then(s => f.fsm_state = s);
                     return f;
                 }),
 
@@ -616,6 +629,7 @@ export async function connect(proc, connectionInfo) {
     }
 }
 
+/*
 export async function changeFSMState(procUrl, fsm, state) {
     if (procUrl) {
         console.log('nerikiri.changeECState(', procUrl, fsm, state, ')');
@@ -627,6 +641,7 @@ export async function changeFSMState(procUrl, fsm, state) {
         return f.json();
     }
 }
+ */
 
 export async function invokeOperation(op) {
     console.debug('nerikiri.invokeOperation(', op, ')');

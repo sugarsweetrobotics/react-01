@@ -262,7 +262,7 @@ function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgre
     }
 
 
-    if (vm.type === 'fsm') {
+    if (vm.type === 'FSM') {
 
         // menuParameter.ecButtonState = {};
         drawFSMSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress);
@@ -275,7 +275,7 @@ function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgre
     }
 
 
-    if (vm.type === 'operation' || vm.type === 'container_operation') {
+    if (vm.type === 'Operation' || vm.type === 'container_operation') {
         drawOperationSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress);
     }
 }
@@ -476,7 +476,7 @@ function drawFSMSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimat
     menuParameter.fsmButtonState.viewModel = vm;
     let leftPos = startPos;
     let rightPos = stopPos;
-    menuParameter.fsmButtonState.stateButtonStates = vm.model.model.states.map((s, i) => {
+    menuParameter.fsmButtonState.stateButtonStates = vm.model.states.map((s, i) => {
         if (i % 2 === 0) {
             leftPos.y += stride;
             rightPos.y += stride;

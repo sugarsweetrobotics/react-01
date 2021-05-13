@@ -324,7 +324,7 @@ export class CanvasDraw {
     }
 
     checkMenuButtonClicked(point) {
-        console.log('check Menu Button Clicked', menuParameter.ecButtonState);
+        console.log('check Menu Button Clicked fsm:', menuParameter.fsmButtonState, 'ec:', menuParameter.ecButtonState);
         if (menuParameter.fsmButtonState.stateButtonStates) {
             for(let st of menuParameter.fsmButtonState.stateButtonStates) {
                 if (includes(st, point)) {
@@ -719,9 +719,8 @@ export class CanvasDraw {
     }
 
     onChangeFSMState(vm, state) {
-        //console.log('onChangeECState:', vm, state);
-        let processUrl = vm.model.processUrl;
-        return this.controller.changeFSMState(processUrl, vm.model.model, state.name).then((info) => {
+        console.log('onChangeFSMState:', vm, state);
+        return this.controller.changeFSMState(vm.model, state).then((info) => {
             this.validate();
             this.controller.update();
         });
