@@ -1,5 +1,33 @@
 import {crossingPointLineAndEllipse, crossingPointLineAndRect, rotate, translate} from "./Dimension";
 
+function init_nsins(tick) {
+    let sins = [];
+    let d = 0;
+    for (let i = 0; i < tick;i++) {
+        d = Math.PI * 2 / (tick+1) * i;
+        sins.push(Math.sin(d));
+    }
+    return sins;
+}
+
+let nsins = init_nsins(600);
+
+function normalize_rad(rad) {
+    while(rad >= Math.PI*2) rad -= Math.PI*2;
+    while(rad < 0) rad += Math.PI*2;
+    return rad;
+}
+
+export function Nsin(rad1) {
+    let rad = normalize_rad(rad1);
+    let tick = nsins.length;
+    return nsins[Math.round(rad / Math.PI / 2 * (tick+1))]
+}
+
+export function Ncos(rad1) {
+    return Nsin(rad1 + Math.PI/2);
+}
+
 
 export function drawPolygon(ctx, points, color) {
 
@@ -275,10 +303,10 @@ export function drawPi(ctx, center, radius, startAngle, endAngle, color, option)
     ctx.lineWidth = option.lineWidth !== undefined ? option.lineWidth : 6.0;
     ctx.strokeStyle = lineColor;
     ctx.beginPath();
-    let sc = Math.cos(startAngle);
-    let ss = Math.sin(startAngle);
-    let ec = Math.cos(endAngle);
-    let es = Math.sin(endAngle);
+    let sc = Ncos(startAngle);
+    let ss = Nsin(startAngle);
+    let ec = Ncos(endAngle);
+    let es = Nsin(endAngle);
 
     ctx.moveTo(center.x + innerRadius * sc, center.y + innerRadius * ss);
     ctx.lineTo( center.x + radius * sc, center.y + radius * ss);

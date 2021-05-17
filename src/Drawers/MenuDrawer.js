@@ -1,9 +1,50 @@
-import {drawEllipse, drawArc, drawRect, drawEllipseShadow, drawLine, drawPi, drawRectShadow, drawText} from "./Drawing";
+import {drawEllipse, drawArc, drawRect, drawEllipseShadow, drawLine, drawPi, drawRectShadow, drawText, Nsin, Ncos} from "./Drawing";
 import {colors} from './VMColors';
 //import {drawVM, drawEC, drawECStates} from "./ObjectDrawer";
 //import {drawContainerConnection, drawECBindConnection, drawOperationConnection} from "./RelationDraw";
 import {offset} from "./Dimension";
 import {menuParameter} from "./MenuParameter";
+import {drawOperationControlMenu, drawOperationSpecialMenu} from "./OperationControlMenu";
+
+
+function menuInterval(cb, interval) {
+    let startTime = Date.now();
+    let timer = setInterval( ()=> {
+        let durationMS = Date.now() - startTime;
+        cb(timer, durationMS);
+    }, interval);
+}
+
+function menuFuncProgress(cb, interval, duration) {
+    menuInterval((timer, durationMS) => {
+        let progress = 100 * durationMS / duration;
+        if (progress >= 100) {
+            progress = 100;
+            clearInterval(timer);
+        }
+        cb(progress);
+    }, interval);
+}
+
+export function drawSelectedVMMenu(drawer, ctx, vm) {
+    if (vm == null) {
+        drawer.menuProgressed = -1;
+        return;
+    }
+    drawSelectedVMMenuWorker(drawer, ctx, vm, drawer.menuProgressed, drawer.menuAnimationProgressed);
+    if (drawer.menuProgressed < 0) {
+        menuFuncProgress( progress => {
+            drawer.menuProgressed = progress;
+            drawer.drawCanvas(ctx);
+        }, 50, 300);
+    } else if (drawer.menuAnimationProgressed < 0) {
+        menuFuncProgress(progress => {
+            drawer.menuAnimationProgressed = progress;
+            drawer.drawCanvas(ctx);
+        }, 50, 300);
+    }
+}
+
 
 
 export function drawSelectedVMBackground(ctx, vm) {
@@ -38,7 +79,6 @@ export function drawSelectedVMBackground(ctx, vm) {
 export function drawSelectedRelationMenuBackground(ctx, connection) {
     if (connection == null) return;
     let color = '#fff';
-    //console.log(connection.connection);
     if (connection.connection) {
     }
     drawLine(ctx, {x: connection.line.x0, y: connection.line.y0}, {x: connection.line.x1, y: connection.line.y1}, color, {lineWidth: 5, blur: 20});
@@ -110,173 +150,166 @@ export function drawSelectedRelationMenu(drawer, ctx, connection) {
 }
 
 
-export function drawSelectedVMMenu(drawer, ctx, vm) {
-    //console.log('drawSelectedVMMenu', drawer.menuProgressed, drawer.menuAnimationProgressed);
-    if (vm == null) {
-        drawer.menuProgressed = -1;
-        return;
-    }
-    drawSelectedVMMenuWorker(drawer, ctx, vm, drawer.menuProgressed, drawer.menuAnimationProgressed);
-    if (drawer.menuProgressed < 0) {
-        drawer.menuProgressed = 1;
-        let startTime = Date.now();
-        let timer = setInterval( () => {
-            let durationMS = Date.now() - startTime;
-            drawer.menuProgressed = 100 * durationMS / 300;
-            drawer.drawCanvas(ctx);
-            if (drawer.menuProgressed >= 100) {
-                drawer.menuProgressed = 100;
-                clearInterval(timer);
-            }
-        }, 50);
-    } else if (drawer.menuAnimationProgressed < 0) {
-        let startTime = Date.now();
-        let timer = setInterval( () => {
-            let durationMS = Date.now() - startTime;
-            drawer.menuAnimationProgressed = 100 * durationMS / 300;
-            drawer.drawCanvas(ctx);
-            if (drawer.menuAnimationProgressed >= 100) {
-                drawer.menuAnimationProgressed = 100;
-                clearInterval(timer);
-            }
-        }, 50);
+function drawInnerProgressMeter(ctx, vm, radius, color, progress) {
+    /// 内側のプログレスメーター部分の描画
+    drawEllipse(ctx, vm.position, {width: radius * 2, height: radius * 2}, color, {
+        fill: false,
+        lineWidth: 2.0
+    });
+    drawEllipse(ctx, vm.position, {width: radius * 2 + 30, height: radius * 2 + 30}, color, {
+        fill: false,
+        lineWidth: 2.0
+    });
+
+    let circle_progress = progress;
+    drawEllipse(ctx, vm.position, {width: radius * 2 + 70, height: radius * 2 + 70}, color, {
+        fill: false,
+        lineWidth: 1.0,
+        startAngle: 0,
+        endAngle: Math.PI * 2 / 100 * circle_progress
+    });
+
+    if (progress >= 90) {
+        drawPi(ctx, vm.position, radius + 40, Math.PI / 2 - 0.9, Math.PI / 2 + 0.3, color, {
+            innerRadius: radius + 36,
+            stroke: false
+        });
+        drawPi(ctx, vm.position, radius + 40, Math.PI + Math.PI / 2 - 0.9, Math.PI + Math.PI / 2 + 0.3, color, {
+            innerRadius: radius + 36,
+            stroke: false
+        });
     }
 
+    let rr = radius + 2;
+    let rd = radius + 12;
+    for (let i = 0; i < circle_progress; i++) {
+        let theta = Math.PI * 2 / 100 * i;
+        let c = Ncos(theta);
+        let s = Nsin(theta);
+        drawLine(ctx, {x: rr * c + vm.position.x, y: rr * s + vm.position.y}, {
+            x: rd * c + vm.position.x,
+            y: rd * s + vm.position.y
+        }, color);
+    }
+}
 
+
+function drawVMInstanceNameMenu(progress, radius, ctx, vm, color) {
+    // インスタンス名を描画
+    // let instanceName = vm.model.info.fullName;
+    //if (vm.type === 'callback') instanceName = vm.model.model.name;
+
+    let arrow_progress = progress > 33 ? 100 : progress * 3;
+    let base_progress = progress > 66 ? 100 : (progress - 33) * 3;
+    let theta = -Math.PI / 5;
+
+    const maxBaseLength = 200;
+    const c = Ncos(theta);
+    const s = Nsin(theta);
+    let rr = radius - 20;
+    let rd = rr + (100) / 100.0 * arrow_progress;
+    let base_length = maxBaseLength / 100.0 * base_progress;
+    drawLine(ctx, {x: vm.position.x + rr * c, y: vm.position.y + rr * s}, {
+            x: rd * c + vm.position.x,
+            y: rd * s + vm.position.y
+        },
+        color);
+    if (base_progress > 0) {
+        drawLine(ctx, {
+                x: rd * c + vm.position.x,
+                y: rd * s + vm.position.y
+            }, {x: rd * c + vm.position.x + base_length, y: rd * s + vm.position.y},
+            color);
+    }
+
+    if (progress >= 100) {
+        const instance_name_position = {
+            x: rd * c + vm.position.x + maxBaseLength / 2,
+            y: rd * s + vm.position.y - 10
+        };
+
+        let button_size = 40;
+        let close_button_position = {
+            x: instance_name_position.x + maxBaseLength / 2,
+            y: instance_name_position.y - button_size / 2 - 10
+        };
+
+        drawText(ctx, vm.type, {
+            x: rd * c + vm.position.x + 60,
+            y: rd * s + vm.position.y - 30
+        }, color);
+        drawText(ctx, '"' + vm.model.info.fullName + '"', instance_name_position, color);
+
+        drawText(ctx, 'description:', {
+            x: rd * c + vm.position.x + maxBaseLength / 2,
+            y: rd * s + vm.position.y + 20
+        }, color);
+
+        drawText(ctx, '"' + vm.model.info.description + '"', {
+            x: rd * c + vm.position.x + maxBaseLength / 2,
+            y: rd * s + vm.position.y + 40
+        }, color, { align: 'left'});
+    }
 }
 
 function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgress) {
 
     let radius = Math.sqrt(vm.size.width * vm.size.width + vm.size.height * vm.size.height) / 2 + 10;
     const color = colors[vm.model.info.className];
+    // 内側の基本円を書く
+    drawInnerProgressMeter(ctx, vm, radius, color, progress);
 
     {
-        /// 内側のプログレスメーター部分の描画
-        drawEllipse(ctx, vm.position, {width: radius * 2, height: radius * 2}, color, {
-            fill: false,
-            lineWidth: 2.0
-        });
-        drawEllipse(ctx, vm.position, {width: radius * 2 + 30, height: radius * 2 + 30}, color, {
-            fill: false,
-            lineWidth: 2.0
-        });
-
-        let circle_progress = progress;
-        drawEllipse(ctx, vm.position, {width: radius * 2 + 70, height: radius * 2 + 70}, color, {
-            fill: false,
-            lineWidth: 1.0,
-            startAngle: 0,
-            endAngle: Math.PI * 2 / 100 * circle_progress
-        });
-
-        if (progress >= 90) {
-            drawPi(ctx, vm.position, radius + 40, Math.PI / 2 - 0.9, Math.PI / 2 + 0.3, color, {
-                innerRadius: radius + 36,
-                stroke: false
-            });
-            drawPi(ctx, vm.position, radius + 40, Math.PI + Math.PI / 2 - 0.9, Math.PI + Math.PI / 2 + 0.3, color, {
-                innerRadius: radius + 36,
-                stroke: false
-            });
-        }
-
-        let rr = radius + 2;
-        let rd = radius + 12;
-        for (let i = 0; i < circle_progress; i++) {
-            let theta = Math.PI * 2 / 100 * i;
-            let c = Math.cos(theta);
-            let s = Math.sin(theta);
-            drawLine(ctx, {x: rr * c + vm.position.x, y: rr * s + vm.position.y}, {
-                x: rd * c + vm.position.x,
-                y: rd * s + vm.position.y
-            }, color);
-        }
+        drawVMInstanceNameMenu(progress, radius, ctx, vm, color);
     }
 
-    drawOperationControlMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress);
-
-    {
-        // インスタンス名を描画
-        // let instanceName = vm.model.info.fullName;
-        //if (vm.type === 'callback') instanceName = vm.model.model.name;
-
-        let arrow_progress = progress > 33 ? 100 : progress * 3;
-        let base_progress = progress > 66 ? 100 : (progress - 33) * 3;
-        let theta = -Math.PI / 5;
-
-        let maxBaseLength = 200;
-        let c = Math.cos(theta);
-        let s = Math.sin(theta);
-        let rr = radius - 20;
-        let rd = rr + (100) / 100.0 * arrow_progress;
-        let base_length = maxBaseLength / 100.0 * base_progress;
-        drawLine(ctx, {x: vm.position.x + rr * c, y: vm.position.y + rr * s}, {x: rd * c + vm.position.x, y: rd*s + vm.position.y},
-            color);
-        if (base_progress > 0) {
-            drawLine(ctx, {
-                    x: rd * c + vm.position.x,
-                    y: rd * s + vm.position.y
-                }, {x: rd * c + vm.position.x + base_length, y: rd * s + vm.position.y},
-                color);
-        }
-
-        if (progress >= 100) {
-            let instance_name_position = {
-                x: rd * c + vm.position.x + maxBaseLength/2,
-                y: rd * s + vm.position.y - 10
-            };
-
-            let button_size = 40;
-            let close_button_position = {
-                x: instance_name_position.x + maxBaseLength / 2,
-                y: instance_name_position.y - button_size /2 - 10
-            };
-
-            let title = vm.type;
-            if (vm.type === 'ec') title = 'ExecutionContext';
-            else if (vm.type === 'container_operation') title = 'Container Operation';
-            else if (vm.type === 'container') title = 'Container';
-            else if (vm.type === 'callback') title = 'Callback';
-            else if (vm.type === 'topic') title = 'Topic';
-            else if (vm.type === 'fsm') title = 'FSM';
-            drawText(ctx, title, {
-                x: rd * c + vm.position.x + 40,
-                y: rd * s + vm.position.y - 30
-            }, color);
-
-            drawText(ctx, '"' + vm.model.info.fullName + '"', instance_name_position , color);
-
-            // drawRect(ctx, close_button_position, {width: button_size, height: button_size}, color);
-        }
-    }
-
-    //menuParameter.ecButtonState = null;
-    if (vm.type === 'container') {
-        return;
-    }
-
-    if (vm.type === 'ExecutionContext') {
-
-       // menuParameter.ecButtonState = {};
+    if (vm.type === 'Container') {
+        drawContainerSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress);
+    } else if (vm.type === 'ExecutionContext') {
         drawECSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress);
-    }
-
-
-    if (vm.type === 'FSM') {
-
-        // menuParameter.ecButtonState = {};
+    } else if (vm.type === 'FSM') {
         drawFSMSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress);
-    }
-
-    if (vm.type === 'callback') {
-
-        // menuParameter.ecButtonState = {};
+    } else if (vm.type === 'callback') {
         drawCallbackSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress);
-    }
-
-
-    if (vm.type === 'Operation' || vm.type === 'container_operation') {
+    } else if (vm.type === 'Operation') {
+        drawOperationControlMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress);
         drawOperationSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress);
+    }
+}
+
+function pos_to_string(pose) {
+    return '(' + pose.position.x + ',' + pose.position.y + ',' + pose.position.z + ')';
+}
+
+function ori_to_string(pose) {
+    return '('
+        + pose.orientation.x + ',' + pose.orientation.y + ',' + pose.orientation.z + ',' + pose.orientation.w + ')';
+}
+
+function drawContainerSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress) {
+
+    let arrow_progress = progress > 33 ? 100 : progress * 3;
+    let theta = -Math.PI / 5;
+    const c = Ncos(theta);
+    const s = Nsin(theta);
+    let rr = radius - 20;
+    let rd = rr + (100) / 100.0 * arrow_progress;
+    const maxBaseLength = 200;
+
+    if (progress >= 100) {
+        drawText(ctx, 'basePose', {
+            x: rd * c + vm.position.x + maxBaseLength / 2,
+            y: rd * s + vm.position.y + 50
+        }, color);
+        drawText(ctx, '- position:' +  pos_to_string(vm.model.basePose.pose), {
+            x: rd * c + vm.position.x + maxBaseLength / 2-20,
+            y: rd * s + vm.position.y + 65
+        }, color, {align: 'left'});
+
+        drawText(ctx, '- orientation:' +  ori_to_string(vm.model.basePose.pose), {
+            x: rd * c + vm.position.x + maxBaseLength / 2-20,
+            y: rd * s + vm.position.y + 80
+        }, color, {align: 'left'});
     }
 }
 
@@ -312,8 +345,8 @@ function drawCallbackSpecialMenu(drawer, ctx, vm, radius, color, progress, menuA
 
     // 右下にBound Operationsのメニューを描画します．
     let maxBaseLength = 200;
-    let c = Math.cos(theta);
-    let s = Math.sin(theta);
+    let c = Ncos(theta);
+    let s = Nsin(theta);
     let rr = radius - 20;
     let rd = rr + (100) / 100.0 * baseProgress;
     let base_length = maxBaseLength / 100.0 * arrowProgress;
@@ -523,8 +556,8 @@ function drawECSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimati
 
     // 右下にBound Operationsのメニューを描画します．
     let maxBaseLength = 200;
-    let c = Math.cos(theta);
-    let s = Math.sin(theta);
+    let c = Ncos(theta);
+    let s = Nsin(theta);
     let rr = radius - 20;
     let rd = rr + (100) / 100.0 * baseProgress;
     let base_length = maxBaseLength / 100.0 * arrowProgress;
@@ -672,597 +705,6 @@ function drawECSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimati
 
                  */
             }
-        }
-    }
-}
-
-function drawOperationSpecialMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress) {
-
-    /// 入出力ボタンの表示
-    let icon_progress = progress < 50 ? 0 : (progress - 50) * 2;
-    let icon_radius = 40;
-    let arc_progress = icon_progress;
-
-    let output_icon_center = {x:vm.position.x + vm.size.width / 2 + 90, y: vm.position.y};
-    //this.drawEllipse(ctx, output_icon_center,
-    //    {width: icon_radius*2, height: icon_radius*2}, color, {fill: false, lineWidth: 2.0, startAngle: 0, endAngle: Math.PI * 2 / 100 * icon_progress});
-
-    let stopAngle = Math.PI * 1 / 10;
-    let startAngle = ((-Math.PI * 3 / 5) - Math.PI / 4) * arc_progress / 100.0 + stopAngle;
-    drawArc(ctx, vm.position, radius + 110, stopAngle, startAngle, color, {
-        ccw: true,
-        lineWidth: 2.0
-    });
-
-    if (progress >= 90) {
-        let fill = false;
-        if (drawer.menuState !== null) {
-            fill = true;
-        }
-        // これは出力ボタンの分！
-        drawPi(ctx, vm.position, radius + 100, -Math.PI/16, Math.PI / 16, color, {
-            innerRadius: radius + 45,
-            fill: fill,
-            stroke: !fill,
-            lineWidth: 2.0
-        });
-        // これは出力ボタンの横の装飾の分！
-        drawPi(ctx, vm.position, radius + 110, -Math.PI/8, 0, color, {
-            innerRadius: radius + 105,
-            stroke: false,
-            //fill: false,
-        });
-
-        menuParameter.outputButtonCenter = {x: vm.position.x + radius + 70, y: vm.position.y};
-        drawText(ctx, 'Output', output_icon_center, color);
-
-        // 出力ボタン選択状態の描画するよー
-        if (drawer.menuState === 'output_button_clicked') {
-            let lineProgress = menuAnimationProgress < 50 ? menuAnimationProgress * 2 : 100;
-            let lineLength = 150;
-            let lineEnd = {x: vm.position.x + radius + 120 + 20 + lineLength * lineProgress / 100, y: vm.position.y};
-            drawLine(ctx, {x: vm.position.x + radius + 120, y: vm.position.y},
-                lineEnd, color);
-
-            let w = ctx.measureText('Connections').width;
-            let conTitlePos = {x: 0 , y: vm.position.y - 10};
-            drawText(ctx, 'Connections', {
-                x: lineEnd.x - w / 2,
-                y: conTitlePos.y
-            }, color);
-
-            let connectorButtonsState = menuParameter.outputButtonState.connectorButtons;
-            menuParameter.outputButtonState.connectorButtons = [];
-            menuParameter.outputButtonState.deleteButton = null;
-            /// 接続があればリストにして表示するよー
-            let conProgress = menuAnimationProgress < 50 ? 0 : (menuAnimationProgress - 50) * 2;
-
-            if (conProgress > 50) {
-
-
-                conTitlePos.y += 40;
-                //console.log('Drawing Connections...', vm);
-                for (let i = 0; vm.model.model.outlet.connections && i < vm.model.model.outlet.connections.length; ++i) {
-                    let con = vm.model.model.outlet.connections[i];
-                    //let w = ctx.measureText(con.name).width;
-
-                    console.log('Con:', con);
-                    let fullName = con.inlet.fullName;
-                    drawRect(ctx, {
-                        x: vm.position.x + radius + 120 + 140,
-                        y: conTitlePos.y - 5
-                    }, {width: 280, height: 30}, color);
-
-                    drawText(ctx, fullName, {
-                        //x: lineEnd.x - w/2 - 30,
-                        x: vm.position.x + radius + 120,
-                        y: conTitlePos.y
-                    }, color, {
-                        align: 'left'
-                    });
-
-
-                    menuParameter.outputButtonState.connectorButtons.push({
-                        position: {
-                            x: vm.position.x + radius + 120 + 140,
-                            y: conTitlePos.y - 5
-                        }, size: {width: 280, height: 30}, connection: con
-                    });
-                    // もし，押されてたコネクションボタンが選択中の接続と一致したらDELETEボタンを表示
-                    if (menuParameter.outputButtonState.pushedConnectorButton !== null &&
-                        menuParameter.outputButtonState.pushedConnectorButton.connection == con) {
-
-
-                        drawRect(ctx, {
-                            x: lineEnd.x + 155,
-                            y: conTitlePos.y - 5
-                        }, {width: 70, height: 40}, color);
-                        menuParameter.outputButtonState.deleteButton = {
-                            position: {
-                                x: lineEnd.x + 155,
-                                y: conTitlePos.y - 5
-                            },
-                            size: {width: 70, height: 20},
-                            connection: con,
-                            vm: vm
-                        }
-                        drawText(ctx, 'DELETE', {x: lineEnd.x + 153, y: conTitlePos.y}, color);
-
-
-                    } else {
-                        menuParameter.outputButtonState.deleteButton = null;
-                    }
-                    conTitlePos.y += 35;
-                }
-                w = ctx.measureText("Add Connection...").width;
-
-                drawRect(ctx,
-                    {
-                        x: vm.position.x + radius + 120 + 140,
-                        y: conTitlePos.y - 5
-                    },
-                    //{x: lineEnd.x - 10, y: conTitlePos.y -10},
-                    {width: 280, height: 30}, color);
-                drawText(ctx, "Add Connection...", {
-
-                    x: vm.position.x + radius + 120,
-                    y: conTitlePos.y
-                }, color, {align: 'left'});
-
-                menuParameter.outputButtonState.connectorButtons.push({
-                    position: {
-                        x: vm.position.x + radius + 120 + 140,
-                        y: conTitlePos.y - 5
-                    }, size: {width: 280, height: 30}, connection: null
-                });
-
-                // Add Connection... ボタンが押されたとき・・・
-                if (menuParameter.outputButtonState.pushedConnectorButton !== null &&
-                    menuParameter.outputButtonState.pushedConnectorButton.connection == null) {
-
-                    /// もし，ターゲットとなるOperationのボタンが押されていたら
-                    if (menuParameter.outputButtonState.pushedConnectorButton.pushedTargetButton !== null) {
-                        menuParameter.outputButtonState.pushedConnectorButton.targetButtons = [];
-                        menuParameter.outputButtonState.pushedConnectorButton.argumentButtons = [];
-                        let posY = conTitlePos.y - 10 + 50;
-                        let target_vm = menuParameter.outputButtonState.pushedConnectorButton.pushedTargetButton.viewModel;
-                        let m = target_vm.model;
-                        let instanceName = m.model.fullName;
-                        //if (m.type === 'container_operation') {
-                        //    instanceName = m.model.ownerContainerInstanceName + '::' + instanceName;
-                        //}
-                        let textWidth = ctx.measureText(instanceName).width;
-                        drawRect(ctx, {
-                            x: lineEnd.x - 30,
-                            y: posY
-                        }, {width: 270, height: 20}, color);
-                        drawText(ctx, instanceName, {
-                            x: lineEnd.x - 50 - 100 + textWidth / 2, y: posY + 5
-                        }, color);
-
-
-                        if (menuParameter.outputButtonState.pushedConnectorButton.pushedArgumentButton) {
-                            let btn = menuParameter.outputButtonState.pushedConnectorButton.pushedArgumentButton.button;
-                            let commonBrokers = menuParameter.outputButtonState.pushedConnectorButton.pushedArgumentButton.commonBrokers;
-                            menuParameter.outputButtonState.pushedConnectorButton.pushedArgumentButton.brokerButtons = [];
-
-                            //console.log('Select Brokers');
-                            //console.log(menuParameter.outputButtonState.pushedConnectorButton.pushedArgumentButton)
-                            let arg = btn.targetName;
-                            posY = posY + 30;
-                            drawRect(ctx, {
-                                x: lineEnd.x - 30 + 20,
-                                y: posY
-                            }, {width: 250, height: 20}, color);
-
-                            let textWidth = ctx.measureText(arg).width;
-
-                            drawText(ctx, arg, {
-                                x: lineEnd.x - 30 + textWidth / 2, y: posY + 5
-                            }, color);
-
-                            posY += 30;
-                            for (let b of commonBrokers) {
-                                let textWidth = ctx.measureText(b.fullName).width;
-                                drawRect(ctx, {
-                                    x: lineEnd.x - 30 + 20 + 20,
-                                    y: posY
-                                }, {width: 250, height: 20}, color);
-                                drawText(ctx, b.fullName, {
-                                    x: lineEnd.x - 30 + textWidth / 2, y: posY + 5
-                                }, color);
-
-                                menuParameter.outputButtonState.pushedConnectorButton.pushedArgumentButton.brokerButtons.push({
-                                    position: {
-                                        x: lineEnd.x - 30 + 20 + 20,
-                                        y: posY
-                                    },
-                                    size: {width: 250, height: 20},
-                                    broker: b
-                                });
-
-
-                                posY += 30;
-                            }
-
-                        } else {
-                            /// 引数ボタンを表示
-                            //
-                            // console.log('args:', m);
-                            posY = posY + 30;
-                            for (let arg in m.model.defaultArg) {
-                                if (arg.length === 0) continue;
-                                drawRect(ctx, {
-                                    x: lineEnd.x - 30 + 20,
-                                    y: posY
-                                }, {width: 250, height: 20}, color);
-
-                                let textWidth = ctx.measureText(arg).width;
-
-                                drawText(ctx, arg, {
-                                    x: lineEnd.x - 30 + textWidth / 2, y: posY + 5
-                                }, color);
-
-                                menuParameter.outputButtonState.pushedConnectorButton.argumentButtons.push({
-                                    position: {
-                                        x: lineEnd.x - 30 + 20,
-                                        y: posY
-                                    },
-                                    size: {width: 250, height: 20},
-                                    targetName: arg,
-                                    input: target_vm,
-                                    output: vm
-                                });
-
-                                posY += 30;
-                            }
-                        }
-
-                    } else {
-                        /// もし，ターゲットとなるOperationのボタンが押されていなかったら
-                        let posY = conTitlePos.y - 10 + 50;
-                        drawer.viewModels.forEach((vm) => {
-                            let m = vm.model;
-                            if (m.type === 'operation' || m.type === 'container_operation') {
-                                let instanceName = m.model.instanceName;
-                                if (m.type === 'container_operation') {
-                                    instanceName = m.model.ownerContainerInstanceName + '::' + instanceName;
-                                }
-                                let textWidth = ctx.measureText(instanceName).width;
-                                drawRect(ctx, {
-                                    x: lineEnd.x - 30,
-                                    y: posY
-                                }, {width: 270, height: 20}, color);
-                                drawText(ctx, instanceName, {
-                                    x: lineEnd.x - 50 - 100 + textWidth / 2, y: posY + 5
-                                }, color);
-
-                                menuParameter.outputButtonState.pushedConnectorButton.targetButtons.push({
-                                    position: {
-                                        x: lineEnd.x - 30, y: posY
-                                    },
-                                    size: {
-                                        width: 270, height: 20
-                                    },
-                                    viewModel: vm
-                                });
-                                posY += 30;
-                            }
-                        });
-                    }
-                }
-
-            }
-            conTitlePos.y += 30;
-        }
-
-        // ここは入力ボタンの分！個数に応じて表示場所を調整している分！
-        if (!vm.model.model.defaultArg) {
-            // console.error('defaultArg is undefined:', vm);
-           // return;
-        }
-        let numOfArgs = vm.model.model.inlets.length;
-        let startAngle = Math.PI - Math.PI / 16 * numOfArgs;
-        for(let inlet of vm.model.model.inlets) {
-            let arg = inlet.defaultValue;
-            let argName = inlet.name;
-            // console.log('arg is ', inlet);
-            if (arg.length === 0) continue;
-            let input_icon_center = {
-                x: vm.position.x - (vm.size.width / 2 + 90),
-                y: vm.position.y};
-            let endAngle = startAngle + Math.PI / 8;
-            drawPi(ctx, vm.position, radius + 100,  startAngle, endAngle, color, {
-                innerRadius: radius + 45,
-                fill: false,
-                lineWidth: 2.0
-            });
-            // console.log(arg);
-            let theta = (startAngle + endAngle) / 2;
-            let textPosition = {
-                x: vm.position.x + (vm.size.width / 2 + 90) * Math.cos(theta),
-                y: vm.position.y + (vm.size.width / 2 + 90) * Math.sin(theta)
-            }
-            drawText(ctx, argName, textPosition, color);
-            startAngle = endAngle;
-        }
-    }
-
-}
-
-function drawOperationControlMenu(drawer, ctx, vm, radius, color, progress, menuAnimationProgress) {
-
-    if (vm.type === 'Operation' || vm.type === 'container_operation'){
-        /// 操作メニュー
-
-        if (!menuParameter.operationControlButtonState) {
-            drawArc(ctx,{
-                x:0 + vm.position.x, y: 180 + vm.position.y
-            }, 30 * progress / 100 + 1, 0, Math.PI * 2 / 100 * progress, color);
-            drawArc(ctx, {
-                x:0 + vm.position.x, y: 180 + vm.position.y
-            }, 20 * progress / 100 + 1, 0, -Math.PI * 2 / 100 * progress , color, {
-                ccw: true,
-            });
-
-            if (progress >= 100) {
-                drawText(ctx, 'Control Menu', {
-                    x: vm.position.x + 90, y: 180 + vm.position.y
-                }, color);
-
-                menuParameter.operationControlButtonState = {
-                    button: {
-                        position: {
-                            x: vm.position.x, y: vm.position.y + 180
-                        },
-                        radius: 30
-                    },
-                    pushedButton: null,
-                }
-            }
-        } else if (!menuParameter.operationControlButtonState.pushedButton) {
-            drawArc(ctx,{
-                x:0 + vm.position.x, y: 180 + vm.position.y
-            }, 30 * progress / 100 + 1, 0, Math.PI * 2 / 100 * progress, color);
-            drawArc(ctx, {
-                x:0 + vm.position.x, y: 180 + vm.position.y
-            }, 20 * progress / 100 + 1, 0, -Math.PI * 2 / 100 * progress , color, {
-                ccw: true,
-            });
-            drawText(ctx, 'Control Menu', {
-                x: vm.position.x + 90, y: 180 + vm.position.y
-            }, color);
-
-            menuParameter.operationControlButtonState = {
-                button: {
-                    position: {
-                        x: vm.position.x, y: vm.position.y + 180
-                    },
-                    radius: 30
-                },
-                pushedButton: null,
-            }
-
-        } else {
-            const lineProgress = menuAnimationProgress < 30 ? menuAnimationProgress * 3 + 10 : 100;
-            const maxLineLength = 200;
-            let lineLength = maxLineLength * lineProgress / 100;
-            let anchor = {
-                x: -lineLength / 2, y: 150
-            };
-            drawLine(ctx, anchor, {
-                x: anchor.x + lineLength, y: anchor.y
-            }, color, {
-                offset: vm.position
-            });
-
-            if (lineProgress > 80) {
-                drawRect(ctx, {
-                    x: anchor.x + 25 + vm.position.x, y: anchor.y - 2 + vm.position.y
-                }, {
-                    width: 50, height: 4
-                }, color, {
-                    stroke: false,
-                    fillColor: 'white',
-                    fill: true,
-                    lineWidth: 1.0,
-                })
-            }
-
-            let menuProgress = menuAnimationProgress < 30 ? 0 :(menuAnimationProgress - 30) * 3 + 10;
-            if (menuProgress > 100) menuProgress = 100;
-            anchor.y += 20;
-            if (menuProgress > 0) {
-                // Invoke
-                drawRect(ctx, {
-                    x: vm.position.x - 45, y: anchor.y + 25 + vm.position.y
-                }, {
-                    width: 80, height: 50 * menuProgress / 100
-                }, color);
-
-                // Cyclic Invoke
-                drawRect(ctx, {
-                    x: vm.position.x - 45, y: anchor.y + 25 + vm.position.y + 60
-                }, {
-                    width: 80, height: 50 * menuProgress / 100
-                }, color);
-
-                // Execute
-                drawRect(ctx, {
-                    x: vm.position.x - 45 + 90, y: anchor.y + 25 + vm.position.y
-                }, {
-                    width: 80, height: 50 * menuProgress / 100
-                }, color);
-
-                if (menuProgress > 90) {
-                    menuParameter.operationControlButtonState.invokeButton = {
-                        position: {
-                            x: vm.position.x - 45, y: anchor.y + 25 + vm.position.y
-                        },
-                        size: {
-                            width: 80, height: 50 * menuProgress / 100
-                        },
-                        viewModel: vm,
-                        name: 'Invoke'
-                    };
-                    menuParameter.operationControlButtonState.executeButton = {
-                        position: {
-                            x: vm.position.x - 45 + 90, y: anchor.y + 25 + vm.position.y
-                        },
-                        size: {
-                            width: 80, height: 50 * menuProgress / 100
-                        },
-                        viewModel: vm,
-                        name: 'Execute'
-                    };
-                    menuParameter.operationControlButtonState.cyclicButton = {
-                        position: {
-                            x: vm.position.x - 45, y: anchor.y + 25 + vm.position.y + 60
-                        },
-                        size: {
-                            width: 80, height: 50 * menuProgress / 100
-                        },
-                        viewModel: vm,
-                        name: 'Cyclic'
-                    };
-
-                    drawText(ctx, 'Invoke', {
-                        x: vm.position.x - 45, y: anchor.y + 25 + vm.position.y
-                    }, color);
-                    drawText(ctx, 'Cyclic', {
-                        x: vm.position.x - 45, y: anchor.y + 25 + vm.position.y + 60
-                    }, color);
-                    drawText(ctx, 'Execute', {
-                        x: vm.position.x - 45 + 90, y: anchor.y + 25 + vm.position.y
-                    }, color);
-                }
-            }
-
-
-            let baseProgress = menuAnimationProgress < 30 ? 0 :(menuAnimationProgress - 30) * 3 + 10;
-            if (baseProgress > 100) baseProgress = 100;
-
-            let arrow_progress = progress > 33 ? 100 : progress * 3;
-            if (arrow_progress > 100) arrow_progress = 100;
-            let theta = Math.PI / 4;
-
-            let maxBaseLength = 200;
-            let c = Math.cos(theta);
-            let s = Math.sin(theta);
-            let rr = radius - 20;
-            let rd = rr + (100) / 100.0 * arrow_progress;
-            let base_length = maxBaseLength / 100.0 * baseProgress;
-            drawLine(ctx, {x: vm.position.x + rr * c, y: vm.position.y + rr * s}, {x: rd * c + vm.position.x, y: rd*s + vm.position.y},
-                color);
-            if (baseProgress > 0) {
-                drawLine(ctx, {
-                        x: rd * c + vm.position.x,
-                        y: rd * s + vm.position.y
-                    }, {x: rd * c + vm.position.x + base_length, y: rd * s + vm.position.y},
-                    color);
-
-                if (baseProgress > 80) {
-                    drawText(ctx, 'Log View', {
-                        x: vm.position.x + rd * c + 150,
-                        y: vm.position.y + rd * s - 10
-                    }, color);
-
-                    drawRect(ctx, {
-                        x: vm.position.x + rd * c + 175,
-                        y: vm.position.y + rd * s + 3
-                    }, {width: 50, height: 5}, color, {
-                        stroke: false,
-                        fillColor: 'white',
-                        fill: true,
-                        lineWidth: 1.0,
-                    });
-
-                    if (menuParameter.operationControlButtonState.outputLog) {
-                        if (menuParameter.operationControlButtonState.outputLog.__TYPE__ === '__IMAGE__') {
-                            if (!menuParameter.operationControlButtonState.outputLog.__rawImage__) {
-                                menuParameter.operationControlButtonState.outputLog.__rawImage__
-                                 = atob(menuParameter.operationControlButtonState.outputLog.data.__byte64__);
-                            }
-
-                            let thumbnailWidth = 200;
-                            let size = {width: menuParameter.operationControlButtonState.outputLog.cols, height: menuParameter.operationControlButtonState.outputLog.rows};
-                            let scale = thumbnailWidth / menuParameter.operationControlButtonState.outputLog.cols;
-                            if (!menuParameter.operationControlButtonState.outputLog.__newCanvas__) {
-                                let newCanvas = document.createElement("canvas");
-                                newCanvas.setAttribute('width', size.width.toString());
-                                newCanvas.setAttribute('height', size.height.toString());
-                                newCanvas.width = size.width;
-                                newCanvas.height = size.height;
-
-                                let imageData = ctx.getImageData(0, 0, size.width, size.height);
-                                let data = imageData.data;
-
-                                let k = 0;
-                                for(let i = 0;i < data.length;i += 4) {
-                                    data[i] = menuParameter.operationControlButtonState.outputLog.__rawImage__.charCodeAt(k+2);
-                                    data[i+1] = menuParameter.operationControlButtonState.outputLog.__rawImage__.charCodeAt(k+1);
-                                    data[i+2] = menuParameter.operationControlButtonState.outputLog.__rawImage__.charCodeAt(k+0);
-                                    k += 3;
-                                }
-                                newCanvas.getContext('2d').putImageData(imageData, 0, 0);
-                                menuParameter.operationControlButtonState.outputLog.__newCanvas__ = newCanvas;
-                            }
-
-                            //console.log('Image size:', menuParameter.operationControlButtonState.outputLog.__rawImage__.length);
-                            //console.log(menuParameter.operationControlButtonState.outputLog.__rawImage__);
-                            drawText(ctx, 'IMAGE', {
-                                x: vm.position.x + rd * c + 20,
-                                y: vm.position.y + rd * s + 30 + 30 * 0
-                            }, color, {
-                                align: 'left'
-                            });
-
-                            ctx.scale(scale, scale);
-                            ctx.drawImage(menuParameter.operationControlButtonState.outputLog.__newCanvas__, vm.position.x / scale + (rd * c + 20) / scale, vm.position.y/scale  + (rd * s + 30 + 30)/scale);
-                            ctx.scale(1/scale, 1/scale);
-                        } else {
-                            //let outputLog = menuParameter.operationControlButtonState.outputLog;
-                            let replacer = (key, value) => {
-                                if (value instanceof Array) {
-                                    if (value.length > 50) {
-                                        return "Long Array";
-                                    }
-                                    return "Array[" + value.toString() + "]";
-                                }
-                                if (typeof (value) === "string") {
-                                    if (value.length > 50) {
-                                        return "Long String...";
-                                    }
-                                    return value;
-                                }
-                                return value;
-                            }
-                            //console.log('Stringifying....');
-                            let text = JSON.stringify(menuParameter.operationControlButtonState.outputLog, replacer, 2);
-                            //console.log('Stringfied');
-                            let ts = text.split('\n');
-                            ts.forEach((t, i) => {
-                                drawText(ctx, t, {
-                                    x: vm.position.x + rd * c + 20,
-                                    y: vm.position.y + rd * s + 30 + 30 * i
-                                }, color, {
-                                    align: 'left'
-                                });
-
-                            })
-                        }
-                    } else {
-                        drawText(ctx, 'Select Control Menu Button', {
-                            x: vm.position.x + rd * c + 20,
-                            y: vm.position.y + rd * s + 30
-                        }, color, {
-                            align: 'left'
-                        });
-                    }
-                }
-            }
-
-
         }
     }
 }

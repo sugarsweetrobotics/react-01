@@ -17,27 +17,37 @@ const drawFunction = {
 }
 
 export function drawVM(drawer, ctx, vm) {
+    // もしContainerOperationならinstanceNameだけ表示する
+    let color = colors[vm.model.info.className]
+    let text = vm.model.info.fullName;
+    if (text.indexOf(':') > 0) {
+        let tokens = text.split(':');
+        text = tokens[tokens.length-1];
+        color = colors['Container'];
+    }
+
+
     if (vm.type === 'ec') {
         return drawECStates(drawer, ctx, vm);
     } else if (vm.type === 'fsm') {
         return drawFSMStates(drawer, ctx, vm);
     }
-    let color = '#00fcf4';
+    //let color = '#00fcf4';
     if (vm.model.info.typeName === '_FSMContainerStruct') {
         drawFunction[vm.model.info.typeName](ctx, vm.position, vm.size, colors[vm.model.info.typeName]);
     } else
     if (vm.model.info.typeName === '_ECContainerStruct') {
         drawFunction[vm.model.info.typeName](ctx, vm.position, vm.size, colors[vm.model.info.typeName]);
     } else if (vm.type === 'callback') {
-        color = '#ffffff';
+        // color = '#ffffff';
         drawEllipse(ctx, vm.position, vm.size, color);
     } else {
-        drawFunction[vm.model.info.className](drawer, ctx, vm, colors[vm.model.info.className]);
+        drawFunction[vm.model.info.className](drawer, ctx, vm, color);
     }
 
-    let text = vm.model.info.fullName;
+
     if (vm.type === 'callback') text = vm.model.model.name;
-    drawText(ctx, text, {x: vm.position.x, y: vm.position.y - vm.size.height/2 + 40}, colors[vm.model.info.className]);
+    drawText(ctx, text, {x: vm.position.x, y: vm.position.y - vm.size.height/2 + 40}, color);
 }
 
 

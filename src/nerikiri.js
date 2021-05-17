@@ -33,15 +33,36 @@ export function urlToPort(url) {
  * @param operations
  * @returns {{operations, info}}
  */
-function container(url, containerInfo, operations) {
+async function container(url, containerInfo, operations) {
+
+
+    async function get_base_pose(url, fullName) {
+        console.info('nerikiri.getECState ', container);
+        let api = 'httpBroker/';
+        return (await fetch(url + api + 'operations/' + fullName + ':container_get_pose.ope/call', {method: 'PUT', body: '{}', mode: 'cors'})).json();
+    }
+    let pose = await get_base_pose(url, containerInfo.fullName);
+    console.log('container  get_basepose :  ', pose);
     return {
         url: url,
         info: containerInfo,
         operations: operations,
+        basePose__: {
+            position: { x: -1, y: -1, z: -1 },
+            orientation: {x: 0, y:0, z: 0, w: 1}
+        },
+        basePose : pose,
         isOwn : (operation) => {
             return ownerContainerName(operation.info) == containerInfo.fullName;
         }
     };
+}
+
+
+export async function getBasePose(container) {
+    console.info('nerikiri.getECState ', container);
+    let api = 'httpBroker/';
+    return (await fetch(container.url + api + 'operations/' + container.info.fullName + ':get_state.ope/call', {method: 'PUT', body: '{}', mode: 'cors'})).json();
 }
 
 function topic(url, operationInfo) {
@@ -230,6 +251,14 @@ function ownerContainerName(info) {
     return '';
 }
 
+function selectPureOperations(url, info) {
+    return info.operations.filter(opInfo => {
+        return !pureOperationTypeName(opInfo).startsWith('_')
+            && !(opInfo.typeName === 'Topic')
+            && !opInfo.fullName.endsWith('container_get_pose.ope')
+            && !opInfo.fullName.endsWith('container_set_pose.ope')
+    }).map(opInfo => { return operation(url, opInfo); })
+}
 
 export function process_api(url) {
 
@@ -245,21 +274,23 @@ export function process_api(url) {
     return {
         process: async() => {
             let info = await fetchJson('fullInfo');
+            let cs =  await Promise.all(info.containers.filter(cInfo => {
+                return !cInfo.typeName.startsWith('_') && cInfo.className === 'Container';
+            }).map(async cInfo => {
+                let c = await container(url, cInfo, info.operations.filter((oInfo) => {
+                    return ownerContainerName(oInfo) == cInfo.fullName;
+                }));
+                console.log('c:', c);
+                return c;
+            }));
+            console.log('cs:', cs);
             return {
                 url: ()=> {
                     return url;
                 },
                 _all_operations: info.operations.map(opInfo => { return operation(url, opInfo); }),
-                operations: info.operations.filter(opInfo => {
-                    return !pureOperationTypeName(opInfo).startsWith('_') && !(opInfo.typeName === 'Topic');
-                }).map(opInfo => { return operation(url, opInfo); }),
-                containers: info.containers.filter(cInfo => {
-                    return !cInfo.typeName.startsWith('_') && cInfo.className === 'Container';
-                }).map(cInfo => {
-                    return container(url, cInfo, info.operations.filter((oInfo) => {
-                        return ownerContainerName(oInfo) == cInfo.fullName;
-                    }));
-                }),
+                operations: selectPureOperations(url, info),
+                containers: cs,
                 topics: info.operations.filter(opInfo => {
                     return opInfo.typeName === 'Topic';
                 }).map(opInfo => { return topic(url, opInfo); }),
