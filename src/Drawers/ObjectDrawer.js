@@ -3,7 +3,8 @@ import {colors} from './VMColors';
 //import {includes, distanceToLine, offset, rotate, translate} from "./Dimension";
 
 const drawFunction = {
-    'Operation': (drawer, ctx, vm, color) => drawEllipse(ctx, vm.position, vm.size, color),
+    'Process': (drawer, ctx, vm, color) => drawEllipse(ctx, vm.position, vm.size, color),
+    'ContainerProcess': (drawer, ctx, vm, color) => drawEllipse(ctx, vm.position, vm.size, color),
     'Container': (drawer, ctx, vm, color) => drawRect(ctx, vm.position, vm.size, color),
     'Topic': (drawer, ctx, vm, color) => drawEllipse(ctx, vm.position, vm.size, color),
     'ExecutionContext': (drawer, ctx, vm, color) => {
@@ -18,15 +19,19 @@ const drawFunction = {
 
 export function drawVM(drawer, ctx, vm) {
     // もしContainerOperationならinstanceNameだけ表示する
-    let color = colors[vm.model.info.className]
-    let text = vm.model.info.fullName;
+    // console.log('drawVM(', vm, ')');
+    let color = colors[vm.model.class_name];
+
+    let text = vm.model.name;
+    /*
     if (text.indexOf(':') > 0) {
         let tokens = text.split(':');
         text = tokens[tokens.length-1];
         color = colors['Container'];
     }
+    */
 
-
+    /*
     if (vm.type === 'ec') {
         return drawECStates(drawer, ctx, vm);
     } else if (vm.type === 'fsm') {
@@ -42,8 +47,11 @@ export function drawVM(drawer, ctx, vm) {
         // color = '#ffffff';
         drawEllipse(ctx, vm.position, vm.size, color);
     } else {
-        drawFunction[vm.model.info.className](drawer, ctx, vm, color);
-    }
+    */
+    //{
+    // console.log('drawFunction:', vm);
+    drawFunction[vm.model.class_name](drawer, ctx, vm, color);
+    //}
 
 
     if (vm.type === 'callback') text = vm.model.model.name;
@@ -74,18 +82,18 @@ export function drawECStates(drawer, ctx, vm) {
         fill: false,
         fillColor: 'black',
         stroke: true,
-        strokeWidth: vm.model.ec_state === 'started' ? 8.0 : 4.0,
+        strokeWidth: vm.model.state === 'STARTED' ? 8.0 : 4.0,
     });
-    drawText(ctx, "started", startPos, color);
+    drawText(ctx, "STARTED", startPos, color, {font_size: 10});
 
 
     drawRect(ctx, stopPos, size, color, {
         fill: false,
         fillColor: 'black',
         stroke: true,
-        strokeWidth: vm.model.ec_state === 'stopped' ? 8.0 : 4.0,
+        strokeWidth: vm.model.state === 'STOPPED' ? 8.0 : 4.0,
     });
-    drawText(ctx, "stopped", stopPos, color);
+    drawText(ctx, "STOPPED", stopPos, color, {font_size: 10});
 
 }
 

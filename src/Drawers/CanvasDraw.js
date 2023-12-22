@@ -22,13 +22,16 @@ import {drawLine, drawArc, drawText} from "./Drawing";
 import {drawLeftSideMenu} from "../SideMenuDrawer";
 
 const sizes = {
-    'Operation': {width: 150, height: 70},
+    'Process': {width: 150, height: 70},
     'Container': {width: 150, height: 70},
+    'ContainerProcess': {width: 150, height: 70},
     'Topic': {width: 150, height: 70},
     'ExecutionContext': {width: 150, height: 150},
     'FSM': {width: 150, height: 150}
 }
 export let ViewModel = (m, pos) => {
+    console.log('ViewMode(', m, pos, ')');
+    /*
     if (m.type === 'container') {
         return {
             type: 'container',
@@ -86,10 +89,12 @@ export let ViewModel = (m, pos) => {
             model: m
         };
     } else {
+        */
+    {
         return {
-            type: m.info.className,
+            type: m.class_name,
             position: pos,
-            size: sizes[m.info.className],
+            size: sizes[m.class_name],
             model: m
         };
     }
@@ -162,7 +167,7 @@ export class CanvasDraw {
 
     removeModel(model) {
         for(let i = 0;i < this.viewModels.length;++i) {
-            if (this.viewModels[i].model.model.fullName !== model.model.fullName) {
+            if (this.viewModels[i].model.identifier !== model.identifier) {
                 continue;
             }
             if (this.viewModels[i].model.type !== model.type) {
@@ -198,7 +203,7 @@ export class CanvasDraw {
         console.info('CanvasDraw.addModel ', model, point);
         /// 重複登録を避ける
         for(let vm of this.viewModels) {
-            if (model.info.className === vm.model.info.className && model.info.fullName === vm.model.info.fullName) { // もし重複があったら何もしない
+            if (model.class_name === vm.model.class_name && model.identifier === vm.model.identifier) { // もし重複があったら何もしない
                 return this;
             }
         }
@@ -340,9 +345,14 @@ export class CanvasDraw {
             console.info('check EC Button state');
             if (includes(menuParameter.ecButtonState.startButtonState, point)) {
                 this.onChangeECState(menuParameter.ecButtonState.viewModel, 'started');
+
+                this.controller.update();
+                
                 return true;
             } else if (includes(menuParameter.ecButtonState.stopButtonState, point)) {
                 this.onChangeECState(menuParameter.ecButtonState.viewModel, 'stopped');
+
+                this.controller.update();
                 return true;
             }
 
@@ -791,7 +801,7 @@ export class CanvasDraw {
         // 描画中のViewModeについて
         this.viewModels.forEach((vm) => {
             // let url = vm.model.processUrl;
-            this.controller.getProcesses().forEach((p) => {
+            this.controller.getSystems().forEach((p) => {
                 if (p.url() === vm.model.processUrl) {
                     let m = vm.model.model;
                     if (vm.model.type === 'operation' && p) {
@@ -810,9 +820,9 @@ export class CanvasDraw {
                                 }
                             })
                         })
-                    } else if (vm.model.type === 'ec') {
+                    } else if (vm.model.type === 'execution_context') {
                         p.props.ecs.forEach((ec) => {
-                            if (ec.fullName === m.fullName) {
+                            if (ec.identifier === m.identifier) {
                                 vm.model.model = ec;
                             }
                         });
@@ -836,27 +846,30 @@ export class CanvasDraw {
         drawSelectedVMBackground(ctx, this.selectedViewModel);
         drawSelectedRelationMenuBackground(ctx, this.selectedConnection);
 
+        
         this.operationConnections = [];
         this.viewModels.forEach((vm) => {
             drawContainerConnection(this, ctx, vm);
             drawOperationConnection(this, ctx, vm);
             // drawTopicConnection(this, ctx, vm);
         });
-
+        
         this.viewModels.forEach((vm) => {
             drawEC(this, ctx, vm);
         });
-
+        /*
         this.viewModels.forEach((vm) => {
             drawFSM(this, ctx, vm);
         });
-
+        */
+        
         this.viewModels.forEach((vm) => {
             drawECBindConnection(this, ctx, vm);
-            drawCallbackBindConnection(this, ctx, vm);
-            drawFSMBindOperationConnection(this, ctx, vm);
-            drawFSMBindECConnection(this, ctx, vm);
+            //drawCallbackBindConnection(this, ctx, vm);
+            //drawFSMBindOperationConnection(this, ctx, vm);
+            //drawFSMBindECConnection(this, ctx, vm);
         });
+        
 
         this.viewModels.forEach((vm) => {
             drawVM(this, ctx, vm);

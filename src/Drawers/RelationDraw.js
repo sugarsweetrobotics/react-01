@@ -4,13 +4,17 @@ import {selectConnectingOperation, selectECBoundedOperations, selectFSMStateBoun
 import {colors} from "./VMColors";
 
 export function drawOperationConnection(drawer, ctx, vm) {
-    if (vm.type !== 'Operation' && vm.type !== 'Topic') { return; }
-    let connectedOperations = selectConnectingOperation(vm.model, drawer.viewModels.filter(vm => vm.type === 'Operation' || vm.type === 'Topic').map(vm => vm.model));
-    let connectedVMs = drawer.viewModels.filter(vm => connectedOperations.some((op) => vm.model.info.fullName === op.info.fullName) );
+    console.log('drawOperationConnection(', vm, ')');
+    if (vm.type !== 'Process' && vm.type !== 'Topic' && vm.type !== "ContainerProcess") { return; }
+    let connectedOperations = selectConnectingOperation(vm.model, drawer.viewModels.filter(vm => vm.type === 'Process' || vm.type === 'Topic' || vm.type === 'ContainerProcess').map(vm => vm.model));
+    let connectedVMs = drawer.viewModels.filter(vm => connectedOperations.some((op) => vm.model.identifier === op.identifier) );
+    console.log(' - connectedOperations: ', connectedOperations);
+
     connectedVMs.forEach(tgtVm => drawArrowToEllipse(ctx, vm.position, tgtVm, colors[vm.type]));
-    vm.model.info.outlet.connections.forEach((c)=>{
+    Object.keys(vm.model.destination_connections).forEach((con_id)=>{
+        let c = vm.model.destination_connections[con_id];
         connectedVMs.forEach(tgtVm => {
-            if (c.inlet.ownerFullName === tgtVm.model.info.fullName) {
+            if (c.source_process_identifier === tgtVm.model.identifier) {
                 drawer.operationConnections.push({
                         type: "operation_connection",
                         line: {x0: vm.position.x, y0: vm.position.y,
@@ -23,13 +27,17 @@ export function drawOperationConnection(drawer, ctx, vm) {
 }
 
 export function drawECBindConnection(drawer, ctx, vm) {
-    if (vm.type !== 'ExecutionContext') { return; }
     console.info('RelationDraw.drawECBindConnection ', vm);
+    if (vm.type !== 'ExecutionContext') { return; }
     const padding = 10;
     const startPos = {x:vm.position.x + (vm.size.width-padding*3)/4 + padding/2, y: vm.position.y + vm.size.height/3 - padding};
-    let connectedOperations = selectECBoundedOperations(vm.model, drawer.viewModels.filter(vm => vm.type === 'Operation').map(vm => vm.model));
+    let connectedOperations = selectECBoundedOperations(vm.model, drawer.viewModels.filter(vm_ => {
+        console.log(' --- vm:', vm_);
+        return vm_.type === 'Process' || vm_.type === "ContainerProcess"
+    }).map(vm_ => vm_.model));
+    console.info(' --- connectedOperations:', connectedOperations);
     connectedOperations.forEach((op) => {
-        drawer.viewModels.filter(vm => vm.model.info.fullName === op.info.fullName).forEach((tgtVm) => {
+        drawer.viewModels.filter(vm => vm.model.identifier === op.identifier).forEach((tgtVm) => {
             drawArrowToEllipse(ctx, startPos, tgtVm, colors['ExecutionContext']);
         });
     });
@@ -39,7 +47,7 @@ export function drawECBindConnection(drawer, ctx, vm) {
 export function drawContainerConnection(drawer, ctx, vm) {
     if (vm.type !== 'Container') { return; }
     console.info("RelationDraw.drawContainerConnection ", vm);
-    drawer.viewModels.filter((tgt) => tgt.type === 'Operation' && tgt.model.info.ownerContainerFullName === vm.model.info.fullName)
+    drawer.viewModels.filter((tgt) => tgt.type === 'ContainerProcess' && tgt.model.container_identifier === vm.model.identifier)
         .forEach(tgt => drawCircleArrowToEllipse(ctx, vm, tgt, colors['Container']));
 }
 

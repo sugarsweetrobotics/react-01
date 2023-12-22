@@ -238,14 +238,14 @@ function drawVMInstanceNameMenu(progress, radius, ctx, vm, color) {
             x: rd * c + vm.position.x + 60,
             y: rd * s + vm.position.y - 30
         }, color);
-        drawText(ctx, '"' + vm.model.info.fullName + '"', instance_name_position, color);
+        drawText(ctx, '"' + vm.model.identifier + '"', instance_name_position, color);
 
         drawText(ctx, 'description:', {
             x: rd * c + vm.position.x + maxBaseLength / 2,
             y: rd * s + vm.position.y + 20
         }, color);
 
-        drawText(ctx, '"' + vm.model.info.description + '"', {
+        drawText(ctx, '"' + vm.model.description + '"', {
             x: rd * c + vm.position.x + maxBaseLength / 2,
             y: rd * s + vm.position.y + 40
         }, color, { align: 'left'});
@@ -255,7 +255,7 @@ function drawVMInstanceNameMenu(progress, radius, ctx, vm, color) {
 function drawSelectedVMMenuWorker(drawer, ctx, vm, progress, menuAnimationProgress) {
 
     let radius = Math.sqrt(vm.size.width * vm.size.width + vm.size.height * vm.size.height) / 2 + 10;
-    const color = colors[vm.model.info.className];
+    const color = colors[vm.model.class_name];
     // 内側の基本円を書く
     drawInnerProgressMeter(ctx, vm, radius, color, progress);
 
@@ -297,19 +297,21 @@ function drawContainerSpecialMenu(drawer, ctx, vm, radius, color, progress, menu
     const maxBaseLength = 200;
 
     if (progress >= 100) {
-        drawText(ctx, 'basePose', {
-            x: rd * c + vm.position.x + maxBaseLength / 2,
-            y: rd * s + vm.position.y + 50
-        }, color);
-        drawText(ctx, '- position:' +  pos_to_string(vm.model.basePose.pose), {
-            x: rd * c + vm.position.x + maxBaseLength / 2-20,
-            y: rd * s + vm.position.y + 65
-        }, color, {align: 'left'});
+        if (vm.model.basePose) {
+            drawText(ctx, 'basePose', {
+                x: rd * c + vm.position.x + maxBaseLength / 2,
+                y: rd * s + vm.position.y + 50
+            }, color);
+            drawText(ctx, '- position:' +  pos_to_string(vm.model.basePose.pose), {
+                x: rd * c + vm.position.x + maxBaseLength / 2-20,
+                y: rd * s + vm.position.y + 65
+            }, color, {align: 'left'});
 
-        drawText(ctx, '- orientation:' +  ori_to_string(vm.model.basePose.pose), {
-            x: rd * c + vm.position.x + maxBaseLength / 2-20,
-            y: rd * s + vm.position.y + 80
-        }, color, {align: 'left'});
+            drawText(ctx, '- orientation:' +  ori_to_string(vm.model.basePose.pose), {
+                x: rd * c + vm.position.x + maxBaseLength / 2-20,
+                y: rd * s + vm.position.y + 80
+            }, color, {align: 'left'});
+        }
     }
 }
 

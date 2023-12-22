@@ -1,7 +1,7 @@
 import React from 'react';
 import {Menu, Button, Icon} from 'semantic-ui-react';
 // import process from './nerikiri';
-import ProcessSidePanel from './ProcessSidePanel';
+import SystemSidePanel from './SystemSidePanel';
 // import ModelController from "./ModelController";
 
 export default class Sidemenu extends React.Component {
@@ -29,10 +29,10 @@ export default class Sidemenu extends React.Component {
          */
     }
 
-    processPanel() {
-        let ps = this.state.controller.getProcesses();
+    systemPanel() {
+        let ps = this.state.controller.getSystems();
         return ps.map((p, i)=> {
-            return (<ProcessSidePanel key={i} controller={this.props.controller} processIndex={i}></ProcessSidePanel>
+            return (<SystemSidePanel key={i} controller={this.props.controller} processIndex={i}></SystemSidePanel>
             );
         })
     }
@@ -46,7 +46,7 @@ export default class Sidemenu extends React.Component {
             <div className="sidemenu">
                 <Menu secondary>
                     <Menu.Item >
-                        <span style={{"fontFamily": "hm_tb"}}>Process</span>
+                        <span style={{"fontFamily": "hm_tb"}}>System</span>
                     </Menu.Item>
 
                     <Menu.Menu position={'right'}>
@@ -58,7 +58,7 @@ export default class Sidemenu extends React.Component {
                         </Button>
                     </Menu.Menu>
                 </Menu>
-                {this.processPanel()}
+                {this.systemPanel()}
             </div>
         );
     }

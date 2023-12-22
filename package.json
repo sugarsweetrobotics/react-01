@@ -25,7 +25,7 @@
     "semantic-ui-react": "^0.88.2"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "react-scripts  --openssl-legacy-provider start",
     "build": "react-scripts build",
     "eject": "react-scripts eject",
     "test": "mocha --require @babel/register test/**/*.js"

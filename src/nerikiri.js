@@ -80,24 +80,37 @@ function operation(url, operationInfo) {
 }
 
 export function selectConnectingOperation(operation, operations) {
+    console.log('selectConnectingOperation(', operation, operations, ')');
     return operations.filter((op) => {
-        return operation.info.outlet.connections.some((c)=>
-            c.inlet.ownerFullName === op.info.fullName
-        );
+        return Object.keys(operation.destination_connections).some((con_key)=> {
+            let c = operation.destination_connections[con_key];
+            return c.destination_identifier === op.identifier;
+        } );
     });
 }
 
+
 export async function changeECState(ec, state) {
     console.info('nerikiri.changeECState ', ec, state);
-    let api = 'httpBroker/';
-    return (await fetch(ec.url + api + 'operations/' + ec.info.fullName + ':activate_state_' + state + '.ope/execute', {method: 'PUT', body: '{}', mode: 'cors'})).json();
+    //let api = 'httpBroker/';
+    if (state === 'started') {
+        return (await fetch('/api/execution_context/start?identifier=' + ec.identifier , {method: 'PATCH', body: '{}', mode: 'cors', headers: {
+            "Content-Type": "application/json"
+        }})).json();
+    } else if (state === 'stopped') {
+        return (await fetch('/api/execution_context/stop?identifier=' + ec.identifier , {method: 'PATCH', body: '{}', mode: 'cors', headers: {
+            "Content-Type": "application/json"
+        }})).json();
+    } else {
+        console.error('Unknown state for ec:', state);
+    }
 }
 
 
 export async function getECState(ec) {
     console.info('nerikiri.getECState ', ec);
-    let api = 'httpBroker/';
-    return (await fetch(ec.url + api + 'operations/' + ec.info.fullName + ':get_state.ope/call', {method: 'PUT', body: '{}', mode: 'cors'})).json();
+    //let api = 'httpBroker/';
+    return (await fetch('/api/execution_context/get_state?identifier=' + ec.identifier, {method: 'GET', mode: 'cors'})).json();
 }
 
 export async function updateECState(ec) {
@@ -131,10 +144,14 @@ function ec(url, containerInfo, operations) {
  * @param ec
  * @returns {undefined}
  */
-export function getActivateStartFunction(ec) {
+export function getActivateStartFunctions(ec) {
+    console.log('getActivateStartFunction(', ec, ')');
+    return ec.targets
+    /*
     let activate_started_ope = undefined;
-    ec.operations.forEach( (op) => {
-        if (op.fullName === ec.info.fullName + ':activate_state_started.ope') {
+    ec.targets.forEach( (op) => {
+        console.log(' -- op:',)
+        if (op.identifier === ec.identifier) {
             activate_started_ope = op;
         }
     });
@@ -143,14 +160,17 @@ export function getActivateStartFunction(ec) {
         return undefined;
     }
     return activate_started_ope;
+    */
 }
 
-export function selectECBoundedOperations(ec, operations) {
-    /// console.info('nerikiri.selectECBoundedOperations ', ec, operations);
-    let activate_started_ope = getActivateStartFunction(ec);
-    return operations.filter(op =>
-        activate_started_ope.outlet.connections.some((conInfo) => op.info.fullName === conInfo.inlet.ownerFullName)
-    );
+export function selectECBoundedOperations(ec, processes) {
+    console.info('nerikiri.selectECBoundedOperations ', ec, processes);
+    let activate_started_opes = getActivateStartFunctions(ec);
+    return processes.filter((op) => {
+        let ps = activate_started_opes.filter((opi) => {return opi === op.identifier});
+        return ps.length > 0
+        //activate_started_ope.outlet.connections.some((conInfo) => op.info.fullName === conInfo.inlet.ownerFullName)
+    });
 }
 
 export async function getFSMState(fsmData) {
@@ -252,17 +272,15 @@ function ownerContainerName(info) {
 }
 
 function selectPureOperations(url, info) {
-    return info.operations.filter(opInfo => {
-        return !pureOperationTypeName(opInfo).startsWith('_')
-            && !(opInfo.typeName === 'Topic')
-            && !opInfo.fullName.endsWith('container_get_pose.ope')
-            && !opInfo.fullName.endsWith('container_set_pose.ope')
-    }).map(opInfo => { return operation(url, opInfo); })
+    console.log('selectPureOperations:', info);
+    return Object.keys(info.core_store.processes).map( (k) => {
+        return info.core_store.processes[k];
+    });
 }
 
-export function process_api(url) {
+export function system_api(url) {
 
-    let api = 'httpBroker/';
+    let api = 'api/';
     let fetchJson = async (addr) => {
         return (await fetch(url + api + addr, {method: 'GET', mode: 'cors'})).json();
     };
@@ -273,7 +291,21 @@ export function process_api(url) {
 
     return {
         process: async() => {
-            let info = await fetchJson('fullInfo');
+            let info = await fetchJson('system/profile_full');
+            let cs = info.core_store.containers;
+            let cops = info.core_store.container_processes;
+            Object.keys(cs).forEach((cs_id) => {
+                let c = cs[cs_id];
+                c.container_processes = {};
+                Object.keys(cops).forEach((cop_id) => {
+                    let cop = cops[cop_id];
+                    console.log('cop:', cop);
+                    if (cs_id === cop.container_identifier) {
+                        c.container_processes[cop_id] = cop;
+                    }
+                });
+            });
+            /*
             let cs =  await Promise.all(info.containers.filter(cInfo => {
                 return !cInfo.typeName.startsWith('_') && cInfo.className === 'Container';
             }).map(async cInfo => {
@@ -284,35 +316,38 @@ export function process_api(url) {
                 return c;
             }));
             console.log('cs:', cs);
+            */
+            console.log('nerikiri::process(', info, ')');  
             return {
                 url: ()=> {
                     return url;
                 },
-                _all_operations: info.operations.map(opInfo => { return operation(url, opInfo); }),
-                operations: selectPureOperations(url, info),
-                containers: cs,
-                topics: info.operations.filter(opInfo => {
-                    return opInfo.typeName === 'Topic';
-                }).map(opInfo => { return topic(url, opInfo); }),
-                fsms: info.containers.filter(cInfo => {
-                    return cInfo.className === 'FSM';
-                }).map(cInfo => {
-                    let f = fsm(url, cInfo, info.operations.filter((oInfo) => {
-                        return ownerContainerName(oInfo) == cInfo.fullName;
-                    }));
-                    let s = getFSMState(f).then(s => f.fsm_state = s);
-                    return f;
-                }),
+                //_all_operations: info.operations.map(opInfo => { return operation(url, opInfo); }),
+                operations: info.core_store.processes,
+                containers: info.core_store.containers,
+                //topics: info.operations.filter(opInfo => {
+                //    return opInfo.typeName === 'Topic';
+                //}).map(opInfo => { return topic(url, opInfo); }),
+                //fsms: info.containers.filter(cInfo => {
+                //    return cInfo.className === 'FSM';
+                //}).map(cInfo => {
+                //    let f = fsm(url, cInfo, info.operations.filter((oInfo) => {
+                //        return ownerContainerName(oInfo) == cInfo.fullName;
+                //    }));
+                //    let s = getFSMState(f).then(s => f.fsm_state = s);
+                //    return f;
+                //}),
 
-                ecs: info.containers.filter(cInfo => {
-                    return cInfo.className === 'ExecutionContext';
-                }).map(cInfo => {
+                ecs: info.core_store.ecs,
+                /*
+                .map(cInfo => {
                     let e = ec(url, cInfo, info.operations.filter((oInfo) => {
                         return ownerContainerName(oInfo) == cInfo.fullName;
                     }));
                     let s = e.getState().then(s => e.ec_state = s);
                     return e;
                 }),
+                */
                 brokers:[],
                 connections:[]
             }

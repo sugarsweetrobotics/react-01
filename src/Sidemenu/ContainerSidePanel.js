@@ -20,9 +20,14 @@ export default class ContainerSidePanel extends React.Component {
     }
 
     operationPanels() {
-        return this.state.container.operations.map((op, i) => {
-            return (<OperationSidePanel process={this.state.process} operation={op} ownerContainer={this.props.container} key={i}/>);
-        });
+        console.log('ContainerSidePanel.operationPanels(', this.state.container, ')');
+        if (this.state.container.container_processes) {
+            return Object.keys(this.state.container.container_processes).map((op_key, i) => {
+                let op = this.state.container.container_processes[op_key];
+                console.log('op', op);
+                return (<OperationSidePanel process={this.state.process} operation={op} ownerContainer={this.props.container} key={i}/>);
+            });
+        }
     }
 
     onDragStart(e) {
@@ -31,7 +36,7 @@ export default class ContainerSidePanel extends React.Component {
     }
 
     render() {
-        let instanceName = this.state.container.info.fullName;
+        let instanceName = this.state.container.identifier;
         let titleIsActive = this.state.titleIsActive;
         let operationIsActive = this.state.operationIsActive;
         //let url = this.state.process.url();
@@ -43,7 +48,7 @@ export default class ContainerSidePanel extends React.Component {
                                      onClick={()=>{this.setState({titleIsActive: !this.state.titleIsActive})}}
                                      onDragStart={this.onDragStart.bind(this)} >
                         <Icon name="dropdown"></Icon>
-                        {this.props.container.info.fullName}
+                        {this.props.container.identifier}
                     </Accordion.Title>
                     <Accordion.Content active={titleIsActive} style={{padding: 0, marginTop: 0}}>
 

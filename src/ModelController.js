@@ -1,7 +1,7 @@
 
 
 import process, {
-    process_api,
+    system_api,
     changeECState,
     changeFSMState,
     deleteConnection,
@@ -17,7 +17,7 @@ import process, {
 export default class ModelController {
 
     constructor() {
-        this.processes = [];
+        this.systems = [];
         this.on_update_func = [];
     }
 
@@ -40,12 +40,12 @@ export default class ModelController {
          */
     }
 
-    getProcesses() {
-        return this.processes;
+    getSystems() {
+        return this.systems;
     }
 
     getProcessByUrl(url) {
-        for(let p of this.processes) {
+        for(let p of this.systems) {
             if (p.url() === url) {
                 return p;
             }
@@ -54,14 +54,14 @@ export default class ModelController {
     }
 
     pushProcess(proc) {
-        this.processes.push(proc);
+        this.systems.push(proc);
     }
 
     async update() {
-        let procs = this.processes;
-        this.processes = [];
+        let procs = this.systems;
+        this.systems = [];
         procs.forEach(async (proc) => {
-            this.processes.push(await process_api(proc.url()).process());
+            this.systems.push(await system_api(proc.url()).process());
         });
         return this;
         /*

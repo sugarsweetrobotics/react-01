@@ -9,7 +9,7 @@ import CallbackSidePanel from "../CallbackSidePanel";
 import TopicSidePanel from "./ToipicSidePanel";
 import FSMSidePanel from "./FSMSidePanel";
 
-export default class ProcessSidePanel extends React.Component {
+export default class SystemSidePanel extends React.Component {
 
     constructor(props) {
         super(props);
@@ -21,32 +21,38 @@ export default class ProcessSidePanel extends React.Component {
             operationIsActive: true,
             containerIsActive: true,
             connectionIsActive: false,
-            callbackIsActive: false,
+            //callbackIsActive: false,
             ecIsActive: true,
-            fsmIsActive: true,
-            topicIsActive: true,
+            //fsmIsActive: true,
+            //topicIsActive: true,
             brokerIsActive: false,
             info: {instanceName: ''},
         };
     }
 
-    operationPanels() {
-        let process = this.state.controller.getProcesses()[this.props.processIndex];
-        return process.operations.map((op, i) => {
+    processPanels() {
+        let process = this.state.controller.getSystems()[this.props.processIndex];
+        console.log('processPanels called (process=', process.operations);
+        return Object.keys(process.operations).map((op_id, i) => {
+            let op = process.operations[op_id];
             return (<OperationSidePanel process={process} operation={op} ownerContainer={null} key={i}/>);
         });
     }
 
     containerPanels() {
-        let process = this.state.controller.getProcesses()[this.props.processIndex];
-        return process.containers.map((c, i) => {
-            return (<ContainerSidePanel process={process} container={c} key={i}/>);
-        });
+        let s = this.state.controller.getSystems()[this.props.processIndex];
+        console.log('containerPanels(', s, ')');
+        if (s.containers) {
+            return Object.keys(s.containers).map((c_id, i) => {
+                let c = s.containers[c_id];
+                return (<ContainerSidePanel process={s} container={c} key={i}/>);
+            });
+        }
     }
 
     connectionPanels() {
         // console.log('ProcessSidePanel.connectionPanels()');
-        let process = this.state.controller.getProcesses()[this.props.processIndex];
+        let process = this.state.controller.getSystems()[this.props.processIndex];
         return process.connections.map((c, i) => {
             // console.log('connection:', c);
             return (<ConnectionSidePanel process={process} connection={c} key={i}/>);
@@ -54,14 +60,19 @@ export default class ProcessSidePanel extends React.Component {
     }
 
     ecPanels() {
-        let process = this.state.controller.getProcesses()[this.props.processIndex];
-        return process.ecs.map((c, i) => {
-            return (<ECSidePanel process={process} ec={c} key={i}/>);
-        });
+        let s = this.state.controller.getSystems()[this.props.processIndex];
+        console.log('SystemSidePanel.ecPanels(s=', s, ')');
+        if (s.ecs) {
+            return Object.keys(s.ecs).map((ec_key, i) => {
+                let c = s.ecs[ec_key];
+                console.log('ECSidePanel for ', c);
+                return (<ECSidePanel process={s} ec={c} key={i}/>);
+            });
+        }
     }
 
     topicPanels() {
-        let process = this.state.controller.getProcesses()[this.props.processIndex];
+        let process = this.state.controller.getSystems()[this.props.processIndex];
         return process.topics.map((c, i) => {
             return (<TopicSidePanel process={process} topic={c} key={i}/>);
         });
@@ -93,7 +104,7 @@ export default class ProcessSidePanel extends React.Component {
 
     render() {
 
-        // console.log('ProcessSidePanel.render()');
+        console.log('SystemSidePanel.render()');
         let titleIsActive = this.state.titleIsActive;
         let operationIsActive = this.state.operationIsActive;
         let containerIsActive = this.state.containerIsActive;
@@ -104,7 +115,7 @@ export default class ProcessSidePanel extends React.Component {
         let brokerIsActive = this.state.brokerIsActive;
         let topicIsActive = this.state.topicIsActive;
 
-        let process = this.state.controller.getProcesses()[this.props.processIndex];
+        let process = this.state.controller.getSystems()[this.props.processIndex];
         let url = process.url();
         return (
         <div className="process-in-sidemenu" style={{textAlign: "left", color: "#00ffe8"}}>
@@ -128,7 +139,7 @@ export default class ProcessSidePanel extends React.Component {
                             {"Operations"}
                         </Accordion.Title>
                         <Accordion.Content  style={{padding: 0, marginTop: 0, color: '#ff9174'}} active={operationIsActive}>
-                            {this.operationPanels()}
+                            {this.processPanels()}
                         </Accordion.Content>
                     </Accordion>
 
@@ -147,39 +158,9 @@ export default class ProcessSidePanel extends React.Component {
                         </Accordion.Content>
                     </Accordion>
 
-                    {/* Topics */}
-                    <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
-                        <Accordion.Title index={4}
-                                         active={topicIsActive}
-                                         onClick={()=>{this.setState({topicIsActive: !this.state.topicIsActive})}}
-                                         style={{padding: 0, marginBottom: 0, color: '#fda6fd'}}
-                        >
-                            <Icon name="dropdown"></Icon>
-                            {"Topics"}
-                        </Accordion.Title>
-                        <Accordion.Content  style={{padding: 0, marginTop: 0}} active={topicIsActive}>
-                            {this.topicPanels()}
-                        </Accordion.Content>
-                    </Accordion>
-
-                    {/* FSMs */}
-                    <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
-                        <Accordion.Title index={5}
-                                         active={fsmIsActive}
-                                         onClick={()=>{this.setState({fsmIsActive: !this.state.fsmIsActive})}}
-                                         style={{padding: 0, marginBottom: 0, color: "#6cf17e"}}
-                        >
-                            <Icon name="dropdown"></Icon>
-                            {"FSMs"}
-                        </Accordion.Title>
-                        <Accordion.Content  style={{padding: 0, marginTop: 0}} active={fsmIsActive}>
-                            {this.fsmPanels()}
-                        </Accordion.Content>
-                    </Accordion>
-
                     {/* ECs */}
                     <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
-                        <Accordion.Title index={6}
+                        <Accordion.Title index={3}
                                          active={ecIsActive}
                                          onClick={()=>{this.setState({ecIsActive: !this.state.ecIsActive})}}
                                          style={{padding: 0, marginBottom: 0, color: "#fdff85"}}
@@ -192,51 +173,6 @@ export default class ProcessSidePanel extends React.Component {
                         </Accordion.Content>
                     </Accordion>
 
-                    {/* Brokers */}
-                    <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
-                        <Accordion.Title index={3}
-                                         active={brokerIsActive}
-                                         onClick={()=>{this.setState({brokerIsActive: !this.state.brokerIsActive})}}
-                                         style={{padding: 0, marginBottom: 0, color: "white"}}
-                        >
-                            <Icon name="dropdown"></Icon>
-                            {"Brokers"}
-                        </Accordion.Title>
-                        <Accordion.Content  style={{padding: 0, marginTop: 0}} active={brokerIsActive}>
-                            {this.brokerPanels()}
-                        </Accordion.Content>
-                    </Accordion>
-
-                    {/* Connections */}
-                    <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
-                        <Accordion.Title index={4}
-                                         active={connectionIsActive}
-                                         onClick={()=>{this.setState({connectionIsActive: !this.state.connectionIsActive})}}
-                                         style={{padding: 0, marginBottom: 0, color: "white"}}
-                        >
-                            <Icon name="dropdown"></Icon>
-                            {"Connections"}
-                        </Accordion.Title>
-                        <Accordion.Content  style={{padding: 0, marginTop: 0}} active={connectionIsActive}>
-                            {this.connectionPanels()}
-                        </Accordion.Content>
-                    </Accordion>
-
-
-                    {/* Callbacks */}
-                    <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10}}>
-                        <Accordion.Title index={5}
-                                         active={callbackIsActive}
-                                         onClick={()=>{this.setState({callbackIsActive: !this.state.callbackIsActive})}}
-                                         style={{padding: 0, marginBottom: 0, color: "white"}}
-                        >
-                            <Icon name="dropdown"></Icon>
-                            {"Callbacks"}
-                        </Accordion.Title>
-                        <Accordion.Content  style={{padding: 0, marginTop: 0}} active={callbackIsActive}>
-                            {this.callbackPanels()}
-                        </Accordion.Content>
-                    </Accordion>
                 </Accordion.Content>
             </Accordion>
         </div>

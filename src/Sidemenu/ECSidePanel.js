@@ -8,6 +8,8 @@ export default class ECSidePanel extends React.Component {
     constructor(props) {
         super(props);
 
+        console.log('ECSidePanel.constructor()');
+
         this.state = {
             process: props.process,
             ec: props.ec,
@@ -33,6 +35,7 @@ export default class ECSidePanel extends React.Component {
 
 
     render() {
+        console.log('ECSidePanel.render()');
         return (
             <div className="ec-in-sidemenu" style={{textAlign: "left"}} >
                 <Accordion style={{padding: 0, marginTop: 0, marginLeft: 10, color: "white"}}>
@@ -41,7 +44,7 @@ export default class ECSidePanel extends React.Component {
                                      onClick={()=>{this.setState({titleIsActive: !this.state.titleIsActive})}}
                                      onDragStart={this.onDragStart.bind(this)} >
                         <Icon name="dropdown"></Icon>
-                        {this.props.ec.info.fullName}
+                        {this.props.ec.identifier}
                     </Accordion.Title>
                     <Accordion.Content active={this.state.titleIsActive}>
                         {/* Operations */}

@@ -213,6 +213,7 @@ export function drawEllipseShadow(ctx, position, size, color) {
 }
 
 export function drawEllipse(ctx, position, size, color, option) {
+    // console.log('drawEllipse(', position, size, color, option, ')');
     if (option === undefined)
     {
         option = {
@@ -255,10 +256,11 @@ export function drawEllipse(ctx, position, size, color, option) {
 export function drawText(ctx, text, position, color, option) {
 
     let align = option ? ( option.align ? option.align : 'center') : 'center';
+    let font_size = option ? ( option.font_size ? option.font_size : 14) : 14;
     let scale = ctx.nkScale;
     ctx.lineWidth = 5.0;
     ctx.fillStyle = "white";
-    ctx.font = "italic bold " + (14 * scale).toString() + "px monospace";
+    ctx.font = "italic bold " + (font_size * scale).toString() + "px monospace";
     let textWidth = ctx.measureText(text).width;
     let pos = position;
     if (align === 'center') {

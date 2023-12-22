@@ -1,6 +1,7 @@
 
 export const colors = {
-    'Operation': '#ff0000',
+    'Process': '#ff0000',
+    'ContainerProcess': '#00fcf4',
     'Container': '#00fcf4',
     'Topic': '#ff0fff',
     'ExecutionContext': '#fff900',

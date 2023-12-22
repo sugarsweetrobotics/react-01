@@ -70,10 +70,18 @@ export default class OperationSidePanel extends React.Component {
         let {titleIsActive, connectionIsActive, iconize} = this.state;
 
         if (this.state.iconize) return (<Icon name="copy outline"></Icon>);
-        let operation = this.props.operation;
-        if (!operation.info) return null;
+        let op = this.props.operation;
+        console.log('OperatonSidePanel.render(', op, ') called');
+        //if (!operation.info) return null;
 
-        let {fullName, className, inlets, outlet} = operation.info;
+        let fullName = op.identifier;
+        let className = op.class_name;
+        let inlets = [];
+        let outlet = {
+            connections: []
+        }
+        //let {fullName, className, inlets, outlet} = operation.info;
+        //console.log('OperatonSidePanel.render(', operation, ') called');
 
         return (
             <div className="operation-in-sidemenu"  >
